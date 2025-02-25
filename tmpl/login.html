@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <title>Login</title>
+  </head>
+  <body>
+    <main>
+      <div class="m-auto px-8 pt-32 text-black-800 md:w-[650px]">
+        <div class="font-title space-y-2">
+          <h2 class="text-6xl font-extrabold">Login with Planning Center</h2>
+        </div>
+
+        <div class="space-y-6 pt-16 text-xl">
+          <p>
+            We authorize with Planning Center allowing you to access you
+            Church's songs making lyric sharing a breeze. If you'd like to get
+            started click "login" below.
+          </p>
+          <a
+            href="{{ . }}"
+            class="mx-auto mt-10 flex items-center justify-center rounded-xl border border-transparent bg-gray-900 px-8 py-3 text-lg tracking-wide text-white transition-colors hover:bg-gray-700 max-w-sm"
+          >
+            login →
+          </a>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
