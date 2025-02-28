@@ -7,7 +7,7 @@ import (
 )
 
 func handlerHome(w http.ResponseWriter, r *http.Request) {
-	t, err := template.ParseFiles("./tmpl/home.html")
+	t, err := template.ParseFiles("./template/home.html")
 		if err != nil {
 			http.Error(w, "Error loading login page", http.StatusInternalServerError)
 			log.Println("Template parsing error:", err)
