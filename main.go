@@ -17,6 +17,7 @@ type config struct {
 	pcClient string
 	pcSecret string
 	pcRedirect string
+	tokenSecret string
 }
 
 
@@ -25,6 +26,7 @@ func main() {
 	pcClient := os.Getenv("PC_CLIENTID")
 	pcSecret := os.Getenv("PC_SECRET")
 	pcRedirect := os.Getenv("PC_REDIRECT")
+	tokenSecret := os.Getenv("TOKEN_SECRET")
 	dbURL := os.Getenv("DB_URL")
   	db, err := sql.Open("postgres", dbURL)
   	if err != nil {
@@ -33,7 +35,7 @@ func main() {
   	}
 	dbQueries := database.New(db)
 
-	cfg := config{db: dbQueries, pcClient: pcClient, pcSecret: pcSecret, pcRedirect: pcRedirect}
+	cfg := config{db: dbQueries, pcClient: pcClient, pcSecret: pcSecret, pcRedirect: pcRedirect, tokenSecret: tokenSecret}
 	
 
 	mux := http.NewServeMux()
