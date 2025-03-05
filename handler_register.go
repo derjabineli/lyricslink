@@ -36,7 +36,7 @@ func (cfg *config) register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = cfg.db.CreateUser(context.Background(), database.CreateUserParams{
+	user, err := cfg.db.CreateUser(context.Background(), database.CreateUserParams{
 		ID: userId,
 		FirstName: registerParams.FirstName,
 		LastName: registerParams.LastName,
@@ -52,6 +52,23 @@ func (cfg *config) register(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusInternalServerError, errorMsg)
 		return
 	}
+
+	jwtToken, err := auth.MakeJWT(user.ID, cfg.tokenSecret, time.Hour * 2)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Server error occured. Please try again")
+	}
+
+	cookie := &http.Cookie{
+		Name:     "ll_user",
+		Value:    jwtToken,
+		HttpOnly: true, // Make the cookie inaccessible to JavaScript
+		Secure:   false, // Ensure the cookie is only sent over HTTPS
+		SameSite: http.SameSiteStrictMode, // Protect against CSRF attacks
+		Expires:  time.Now().Add(24 * time.Hour), // Set cookie expiration
+		Path:     "/", // Define cookie scope
+	}
+	
+	http.SetCookie(w, cookie)
 
 	success := successResponse{
 		Success: true,
