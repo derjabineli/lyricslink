@@ -3,12 +3,21 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
     <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+    <script src="/static/alpine/login.js"></script>
     <title>Login</title>
   </head>
   <body>
     <main>
-      <div class="m-auto px-8 pt-32 text-black-800 md:w-[650px]">
+      <div
+        id="login"
+        x-data="loginComponent"
+        class="m-auto px-8 pt-32 text-black-800 md:w-[650px]"
+      >
         <div class="font-title space-y-2 text-center">
           <h2 class="text-6xl font-extrabold">Login with LyricLink</h2>
         </div>
@@ -18,7 +27,7 @@
             Login to access your LyricLink dashboard and start creating events
             for your congregation!
           </p>
-          <form @submit.prevent="register" class="space-y-4 max-w-full mx-auto">
+          <form @submit.prevent="login" class="space-y-4 max-w-full mx-auto">
             <input
               autocomplete="email"
               type="email"
@@ -27,7 +36,6 @@
               class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900"
             />
             <input
-              autocomplete=""
               type="password"
               placeholder="Password"
               x-model="password"
