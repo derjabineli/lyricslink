@@ -46,7 +46,7 @@ func main() {
 	mux.HandleFunc("/", handlerHome)
 	mux.HandleFunc("/login", cfg.loginStatic)
 	mux.HandleFunc("/static/", staticHandler)
-	mux.HandleFunc("/dashboard", handlerDashboard)
+	mux.Handle("/dashboard", cfg.authMiddleware(handlerDashboard))
 	
 	// API
 	mux.HandleFunc("/api/register", cfg.register)
