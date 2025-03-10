@@ -43,10 +43,10 @@ func main() {
 	mux := http.NewServeMux()
 
 	// PAGES
-	mux.HandleFunc("/", handlerHome)
-	mux.HandleFunc("/login", cfg.loginStatic)
+	mux.Handle("/", cfg.guestOnlyMiddleware(handlerHome))
+	mux.Handle("/login", cfg.guestOnlyMiddleware(cfg.loginStatic))
 	mux.HandleFunc("/static/", staticHandler)
-	mux.Handle("/dashboard", cfg.authMiddleware(handlerDashboard))
+	mux.Handle("/dashboard", cfg.authMiddleware(cfg.handlerDashboard))
 	
 	// API
 	mux.HandleFunc("/api/register", cfg.register)
