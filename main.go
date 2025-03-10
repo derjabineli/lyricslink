@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/derjabineli/lyricslink/internal/database"
 	"github.com/joho/godotenv"
@@ -18,6 +19,7 @@ type config struct {
 	pcSecret string
 	pcRedirect string
 	tokenSecret string
+	tokenDuration time.Duration
 }
 
 
@@ -35,7 +37,7 @@ func main() {
   	}
 	dbQueries := database.New(db)
 
-	cfg := config{db: dbQueries, pcClient: pcClient, pcSecret: pcSecret, pcRedirect: pcRedirect, tokenSecret: tokenSecret}
+	cfg := config{db: dbQueries, pcClient: pcClient, pcSecret: pcSecret, pcRedirect: pcRedirect, tokenSecret: tokenSecret, tokenDuration: time.Hour * 8}
 	
 
 	mux := http.NewServeMux()
