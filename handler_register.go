@@ -21,7 +21,6 @@ type registerParameters struct {
 
 type successResponse struct {
 	Success bool `json:"success"`
-	Redirect string `json:"redirect"`
 }
 
 func (cfg *config) register(w http.ResponseWriter, r *http.Request) {
@@ -53,26 +52,15 @@ func (cfg *config) register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	jwtToken, err := auth.MakeJWT(user.ID, cfg.tokenSecret, time.Hour * 2)
+	cookie, err := newJWT(user.ID, cfg.tokenSecret, cfg.tokenDuration)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Server error occured. Please try again")
-	}
-
-	cookie := &http.Cookie{
-		Name:     "ll_user",
-		Value:    jwtToken,
-		HttpOnly: true, // Make the cookie inaccessible to JavaScript
-		Secure:   false, // Ensure the cookie is only sent over HTTPS
-		SameSite: http.SameSiteStrictMode, // Protect against CSRF attacks
-		Expires:  time.Now().Add(24 * time.Hour), // Set cookie expiration
-		Path:     "/", // Define cookie scope
 	}
 	
 	http.SetCookie(w, cookie)
 
 	success := successResponse{
 		Success: true,
-		Redirect: "/dashboard",
 	} 
 
 	respondWithJSON(w, 200, success)
@@ -89,4 +77,23 @@ func handleDBError(err error) string {
 	} else {
 		return "Unknown error occured. Please try again"
 	}
+}
+
+func newJWT(id uuid.UUID, tokenSecret string, expiresIn time.Duration) (*http.Cookie, error) {
+	jwtToken, err := auth.MakeJWT(id, tokenSecret, expiresIn)
+	if err != nil {
+		return nil, err
+	}
+
+	cookie := &http.Cookie{
+		Name:     "ll_user",
+		Value:    jwtToken,
+		HttpOnly: true, // Make the cookie inaccessible to JavaScript
+		Secure:   false, // Ensure the cookie is only sent over HTTPS
+		SameSite: http.SameSiteStrictMode, // Protect against CSRF attacks
+		Expires:  time.Now().Add(24 * time.Hour), // Set cookie expiration
+		Path:     "/", // Define cookie scope
+	}
+
+	return cookie, nil
 }
