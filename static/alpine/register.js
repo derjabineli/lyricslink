@@ -31,7 +31,7 @@ document.addEventListener("alpine:init", () => {
             data.error || "Something went wrong. Please try again"
         } else {
           this.errorMessage = ""
-          window.location.href = data.redirect
+          window.location.href = "/dashboard"
         }
       } catch (error) {
         console.error(error)
