@@ -2,12 +2,15 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"net/url"
+
+	"github.com/derjabineli/lyricslink/internal/auth"
 )
 
 type accessParameters struct {
@@ -27,6 +30,11 @@ type authorizationParameters struct {
 	CreatedAt int `json:"created_at"`
 }
 
+type loginParameters struct {
+	Email string `json:"email"`
+	Password string `json:"password"`
+}
+
 func (cfg *config) loginStatic(w http.ResponseWriter, r *http.Request) {
 		t, err := template.ParseFiles("./template/login.html")
 		if err != nil {
@@ -43,7 +51,32 @@ func (cfg *config) loginStatic(w http.ResponseWriter, r *http.Request) {
 }
 
 func (cfg *config) login(w http.ResponseWriter, r *http.Request) {
-	
+	decoder := json.NewDecoder(r.Body)
+	loginCreds := loginParameters{}
+	decoder.Decode(&loginCreds)
+
+	user, err := cfg.db.GetUserByEmail(context.Background(), loginCreds.Email)
+	if err != nil {
+		respondWithError(w, 401, "User does not exist")
+	}
+
+	err = auth.CheckPasswordHash(loginCreds.Password, user.HashedPassword)
+	if err != nil {
+		respondWithError(w, 401, "Wrong Password")
+	}
+
+	cookie, err := newJWT(user.ID, cfg.tokenSecret, cfg.tokenDuration)
+	if err != nil {
+		respondWithError(w, 401, err.Error())
+	}
+
+	http.SetCookie(w, cookie)
+
+	success := successResponse{
+		Success: true,
+	} 
+
+	respondWithJSON(w, 200, success)
 }
 
 func (cfg *config) planningcentercallback(w http.ResponseWriter, r *http.Request) {
