@@ -27,14 +27,7 @@ type authorizationParameters struct {
 	CreatedAt int `json:"created_at"`
 }
 
-func (cfg *config) login(w http.ResponseWriter, r *http.Request) {
-		redirectURI := url.QueryEscape(cfg.pcRedirect)
-
-		link := fmt.Sprintf(
-			"https://api.planningcenteronline.com/oauth/authorize?client_id=%v&redirect_uri=%v&response_type=code&scope=services",
-			cfg.pcClient, redirectURI,
-		)
-	
+func (cfg *config) loginStatic(w http.ResponseWriter, r *http.Request) {
 		t, err := template.ParseFiles("./template/login.html")
 		if err != nil {
 			http.Error(w, "Error loading login page", http.StatusInternalServerError)
@@ -42,11 +35,15 @@ func (cfg *config) login(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	
-		err = t.Execute(w, link)
+		err = t.Execute(w, nil)
 		if err != nil {
 			http.Error(w, "Error rendering login page", http.StatusInternalServerError)
 			log.Println("Template execution error:", err)
 		}
+}
+
+func (cfg *config) login(w http.ResponseWriter, r *http.Request) {
+	
 }
 
 func (cfg *config) planningcentercallback(w http.ResponseWriter, r *http.Request) {

@@ -42,12 +42,13 @@ func main() {
 
 	// PAGES
 	mux.HandleFunc("/", handlerHome)
-	mux.HandleFunc("/login", cfg.login)
+	mux.HandleFunc("/login", cfg.loginStatic)
 	mux.HandleFunc("/static/", staticHandler)
 	mux.HandleFunc("/dashboard", handlerDashboard)
 	
 	// API
 	mux.HandleFunc("/api/register", cfg.register)
+	mux.HandleFunc("/api/login", cfg.login)
 
 	// AUTH
 	mux.HandleFunc("/pc/callback", cfg.planningcentercallback)
