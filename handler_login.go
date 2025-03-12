@@ -36,7 +36,7 @@ type loginParameters struct {
 }
 
 func (cfg *config) loginStatic(w http.ResponseWriter, r *http.Request) {
-		t, err := template.ParseFiles("./template/login.html")
+		t, err := template.ParseFiles("./views/login.html")
 		if err != nil {
 			http.Error(w, "Error loading login page", http.StatusInternalServerError)
 			log.Println("Template parsing error:", err)
