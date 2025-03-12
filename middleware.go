@@ -1,12 +1,17 @@
 package main
 
 import (
-	"log"
+	"context"
+	"errors"
 	"net/http"
 
 	"github.com/derjabineli/lyricslink/internal/auth"
 	"github.com/google/uuid"
 )
+
+type contextKey string
+
+const userIDKey contextKey = "userID"
 
 func (cfg *config) getUserIDFromCookie(r *http.Request) (uuid.UUID, error) {
 	cookie, err := r.Cookie("ll_user")
@@ -18,15 +23,23 @@ func (cfg *config) getUserIDFromCookie(r *http.Request) (uuid.UUID, error) {
 
 func (cfg *config) authMiddleware(next http.HandlerFunc) http.Handler{
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		id, err := cfg.getUserIDFromCookie(r)
+		userID, err := cfg.getUserIDFromCookie(r)
 		if err != nil {
 			http.Redirect(w, r, "/login", http.StatusSeeOther)
 			return
 		}
-
-		log.Printf("Authenticated user ID: %v", id)
-		next.ServeHTTP(w, r)
+		ctx := context.WithValue(r.Context(), userIDKey, userID)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func getUserIDFromContext(r *http.Request) (uuid.UUID, error) {
+	userID, ok := r.Context().Value("userID").(uuid.UUID)
+	if !ok {
+		return uuid.Nil, errors.New("no user id present")
+	}
+
+	return userID, nil
 }
 
 func (cfg *config) guestOnlyMiddleware(next http.HandlerFunc) http.Handler{
