@@ -49,8 +49,9 @@ func main() {
 	mux.Handle("/dashboard", cfg.authMiddleware(cfg.handlerDashboard))
 	
 	// API
-	mux.HandleFunc("/api/register", cfg.register)
-	mux.HandleFunc("/api/login", cfg.login)
+	mux.HandleFunc("POST /api/register", cfg.register)
+	mux.HandleFunc("POST /api/login", cfg.login)
+	mux.Handle("POST /api/events", cfg.authMiddleware(cfg.addEvent))
 
 	// AUTH
 	mux.HandleFunc("/pc/callback", cfg.planningcentercallback)
