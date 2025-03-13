@@ -13,6 +13,7 @@ import (
 type formattedEvent struct {
 	Name string
 	Date string
+	ID string
 }
 
 func (cfg *config) handlerDashboard(w http.ResponseWriter, r *http.Request) {
@@ -51,6 +52,7 @@ func formatEvents(events []database.Event) []formattedEvent {
 		formattedEvents = append(formattedEvents, formattedEvent{
 			Name: event.Name,
 			Date: event.Date.Format("January 2, 2006"),
+			ID: event.ID.String(),
 		})
 	}
 
