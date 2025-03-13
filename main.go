@@ -46,7 +46,9 @@ func main() {
 	mux.Handle("/", cfg.guestOnlyMiddleware(handlerHome))
 	mux.Handle("/login", cfg.guestOnlyMiddleware(cfg.loginStatic))
 	mux.HandleFunc("/static/", staticHandler)
-	mux.Handle("/dashboard", cfg.authMiddleware(cfg.handlerDashboard))
+	mux.HandleFunc("/loginPC", cfg.loginPC)
+	mux.Handle("/dashboard", cfg.authMiddleware(cfg.handlerDashboard)) 
+	mux.Handle("/events/{id}", cfg.authMiddleware(cfg.handlerEvents)) 
 	
 	// API
 	mux.HandleFunc("POST /api/register", cfg.register)
@@ -61,6 +63,6 @@ func main() {
 		Addr: ":3005",
 	  }
 	  
-	  fmt.Print("Running on Port 3005")
+	  fmt.Print("Running on Port 3005\n")
 	  log.Fatal(server.ListenAndServe())
 }
