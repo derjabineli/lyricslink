@@ -34,7 +34,7 @@ func (cfg *config) authMiddleware(next http.HandlerFunc) http.Handler{
 }
 
 func getUserIDFromContext(r *http.Request) (uuid.UUID, error) {
-	userID, ok := r.Context().Value("userID").(uuid.UUID)
+	userID, ok := r.Context().Value(userIDKey).(uuid.UUID)
 	if !ok {
 		return uuid.Nil, errors.New("no user id present")
 	}
