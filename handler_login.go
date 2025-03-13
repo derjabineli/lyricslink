@@ -1,14 +1,11 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"html/template"
 	"log"
 	"net/http"
-	"net/url"
 
 	"github.com/derjabineli/lyricslink/internal/auth"
 )
@@ -77,47 +74,4 @@ func (cfg *config) login(w http.ResponseWriter, r *http.Request) {
 	} 
 
 	respondWithJSON(w, 200, success)
-}
-
-func (cfg *config) planningcentercallback(w http.ResponseWriter, r *http.Request) {
-	parsedURL, err := url.Parse(r.RequestURI)
-	if err != nil {
-		return
-	}
-	code := parsedURL.Query().Get("code")
-	fmt.Printf("Code: %v", code)
-	accessParams := accessParameters {
-		GrantType: "authorization_code",
-		Code: code,
-		ClientID: cfg.pcClient,
-		ClientSecret: cfg.pcSecret,
-		RedirectURI: cfg.pcRedirect,
-	}
-
-	requestBody, err := json.Marshal(accessParams)
-	if err != nil {
-		panic(err)
-	}
-
-	client := &http.Client{}	
-	authReq, err := http.NewRequest("POST", "https://api.planningcenteronline.com/oauth/token", bytes.NewBuffer(requestBody))
-	if err != nil {
-		panic(err)
-	}
-	authReq.Header.Add("Content-Type", "application/json; charset=utf-8")
-	resp, err := client.Do(authReq)
-	decoder := json.NewDecoder(resp.Body)
-	authParams := authorizationParameters{}
-	decoder.Decode(&authParams)
-
-	fmt.Printf("Access token: %v\n", authParams.AccessToken)
-	
-	cookie := http.Cookie{
-		Name: "jwt-token",
-		Value: "test", 
-		Path: "/",
-	}
-
-	http.SetCookie(w, &cookie)
-	http.Redirect(w, r, "/dashboard", http.StatusPermanentRedirect)
 }
