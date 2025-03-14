@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+    <link href="../output.css" rel="stylesheet" />
+    <title>PC</title>
+  </head>
+  <body>
+    <main>
+      <div
+        id="login"
+        x-data="loginComponent"
+        class="m-auto px-8 pt-32 text-black-800 md:w-[650px]"
+      >
+        <div class="font-title space-y-2 text-center">
+          <h2 class="text-6xl font-extrabold">Login with LyricLink</h2>
+        </div>
+
+        <a href="{{.}}"></a>
+        <button
+          type="submit"
+          class="w-full flex items-center justify-center rounded-xl border border-transparent bg-gray-900 px-8 py-3 text-lg tracking-wide text-white transition-colors hover:bg-gray-700"
+        >
+          Login with PC→
+        </button>
+      </div>
+    </main>
+  </body>
+</html>

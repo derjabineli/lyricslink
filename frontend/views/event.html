@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LyricLink Dashboard</title>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+    <script defer src="/static/modal.js"></script>
+    <link href="/static/output.css" rel="stylesheet" />
+    <script src="/static/alpine/events.js"></script>
+  </head>
+  <body class="p-6">
+    <nav
+      class="bg-white shadow-md p-5 flex justify-between items-center mb-6 rounded-full"
+    >
+      <h1 class="text-2xl font-bold">LyricLink</h1>
+      <div class="flex items-center space-x-4">
+        <a
+          class="justify-center rounded-xl border border-transparent bg-gray-900 px-4 py-2 text-md tracking-wide text-white transition-colors hover:bg-gray-700 cursor-pointer"
+          id="openModalBtn"
+        >
+          Add
+        </a>
+        <div class="w-10 h-10 bg-gray-300 rounded-full"></div>
+      </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto">
+      <div class="space-y-4">
+        <h1 class="font-bold text-4xl">{{.Name}}</h1>
+        <input type="date" value="{{.Date}}" />
+      </div>
+      <div class="space-y-4 mt-6 flex justify-between">
+        <h2 class="font-bold text-3xl">Songs</h2>
+        <p>+</p>
+      </div>
+      <div class="mt-6 hover:bg-gray-100">
+        <h2 class="font-bold text-xl">All Glory Be To Christ</h2>
+        <hr class="font-bold" />
+      </div>
+      <div class="mt-6 hover:bg-gray-100">
+        <h2 class="font-bold text-xl">How Deep The Father's Love</h2>
+        <hr class="font-bold mb-0" />
+        <div class="border-2 flex justify-center space-x-8 p-6">
+          <div class="border-2 h-100 w-80 text-center overflow-scroll">
+            <p class="font-bold">Verse 1</p>
+            <p>
+              How deep the Father’s love for us,<br />
+              How vast beyond all measure,<br />
+              That He should give His only Son<br />
+              To make a wretch His treasure.<br />
+              How great the pain of searing loss –<br />
+              The Father turns His face away,<br />
+              As wounds which mar the Chosen One<br />
+              Bring many sons to glory.
+            </p>
+            <p class="font-bold">Verse 2</p>
+            <p>
+              Behold the man upon a cross,<br />
+              My sin upon His shoulders;<br />
+              Ashamed, I hear my mocking voice<br />
+              Call out among the scoffers.<br />
+              It was my sin that held Him there<br />
+              Until it was accomplished;<br />
+              His dying breath has brought me life –<br />
+              I know that it is finished.
+            </p>
+          </div>
+          <div class="">
+            <h2 class="font-bold text-3xl">Arrangements</h2>
+            <input type="radio" id="html" name="fav_language" value="HTML" />
+            <label class="text-xl font-medium" for="One28">One28</label><br />
+            <input type="radio" id="html" name="fav_language" value="HTML" />
+            <label class="text-xl font-medium" for="Worship Together"
+              >Worship Together</label
+            ><br />
+            <input type="radio" id="html" name="fav_language" value="HTML" />
+            <label class="text-xl font-medium" for="MD">MD</label><br />
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
