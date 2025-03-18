@@ -6,3 +6,7 @@ RETURNING *;
 -- name: GetEventsByUserId :many
 SELECT * FROM events
 WHERE user_id = $1;
+
+-- name: GetEventById :one
+SELECT * FROM events 
+WHERE id = $1;

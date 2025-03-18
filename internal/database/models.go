@@ -28,6 +28,17 @@ type Event struct {
 	UserID    uuid.UUID
 }
 
+type EventsArrangement struct {
+	EventID       uuid.UUID
+	ArrangementID uuid.UUID
+	ID            uuid.UUID
+}
+
+type EventsSong struct {
+	EventID uuid.UUID
+	SongID  uuid.UUID
+}
+
 type Song struct {
 	ID         uuid.UUID
 	PcID       sql.NullInt32
@@ -37,6 +48,7 @@ type Song struct {
 	CopyRight  sql.NullString
 	Themes     sql.NullString
 	Title      string
+	UserID     uuid.UUID
 }
 
 type User struct {
