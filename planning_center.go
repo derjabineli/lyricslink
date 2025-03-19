@@ -13,7 +13,7 @@ import (
 func (cfg *config) loginPC(w http.ResponseWriter, r *http.Request) {
 	link := "https://api.planningcenteronline.com/oauth/authorize?client_id=" + cfg.pcClient + "&redirect_uri=" + cfg.pcRedirect + "&response_type=code&scope=services"
 
-	t, err := template.ParseFiles("./views/pc.html")
+	t, err := template.ParseFiles("./frontend/views/pc.html")
 	if err != nil {
 		http.Error(w, "Error loading page", http.StatusInternalServerError)
 		log.Println("Template parsing error:", err)

@@ -1,14 +1,18 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
 )
 
 func staticHandler(w http.ResponseWriter, r *http.Request) {
-	filePath := "." + r.URL.Path
-	file, _ := os.ReadFile(filePath)
+	filePath := "./frontend" + r.URL.Path
+	file, err := os.ReadFile(filePath)
+	if err != nil {
+		fmt.Print(err)
+	}
 
 	ext := filepath.Ext(filePath)
 	if ext == ".css" {

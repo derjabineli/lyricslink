@@ -31,7 +31,7 @@ func (cfg *config) handlerDashboard(w http.ResponseWriter, r *http.Request) {
 
 	formattedEvents := formatEvents(events)
 
-	t, err := template.ParseFiles("./views/dashboard.html")
+	t, err := template.ParseFiles("./frontend/views/dashboard.html")
 	if err != nil {
 		http.Error(w, "Error loading page", http.StatusInternalServerError)
 		log.Println("Template parsing error:", err)
