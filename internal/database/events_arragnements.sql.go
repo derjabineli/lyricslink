@@ -7,33 +7,52 @@ package database
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 )
 
 const getArrangementsWithEventId = `-- name: GetArrangementsWithEventId :many
-SELECT a.id, a.name, a.lyrics, a.chord_chart, a.song_id
+SELECT 
+    a.id, a.name, a.lyrics, a.chord_chart, a.song_id, 
+    CASE 
+        WHEN a.id = ea.arrangement_id THEN TRUE 
+        ELSE FALSE 
+    END AS is_selected
 FROM events_arrangements ea
 JOIN arrangements a 
-    ON a.id = ea.arrangement_id
+    ON a.song_id = (
+        SELECT song_id FROM arrangements WHERE id = ea.arrangement_id
+    )
 WHERE ea.event_id = $1
+ORDER BY is_selected DESC
 `
 
-func (q *Queries) GetArrangementsWithEventId(ctx context.Context, eventID uuid.UUID) ([]Arrangement, error) {
+type GetArrangementsWithEventIdRow struct {
+	ID         uuid.UUID
+	Name       string
+	Lyrics     string
+	ChordChart sql.NullString
+	SongID     uuid.UUID
+	IsSelected bool
+}
+
+func (q *Queries) GetArrangementsWithEventId(ctx context.Context, eventID uuid.UUID) ([]GetArrangementsWithEventIdRow, error) {
 	rows, err := q.db.QueryContext(ctx, getArrangementsWithEventId, eventID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Arrangement
+	var items []GetArrangementsWithEventIdRow
 	for rows.Next() {
-		var i Arrangement
+		var i GetArrangementsWithEventIdRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.Name,
 			&i.Lyrics,
 			&i.ChordChart,
 			&i.SongID,
+			&i.IsSelected,
 		); err != nil {
 			return nil, err
 		}

@@ -32,3 +32,47 @@ func (q *Queries) GetSongById(ctx context.Context, id uuid.UUID) (Song, error) {
 	)
 	return i, err
 }
+
+const searchSongs = `-- name: SearchSongs :many
+SELECT id, pc_id, admin, author, ccli_number, copy_right, themes, title, user_id FROM songs
+WHERE title LIKE $1
+AND user_id = $2
+`
+
+type SearchSongsParams struct {
+	Title  string
+	UserID uuid.UUID
+}
+
+func (q *Queries) SearchSongs(ctx context.Context, arg SearchSongsParams) ([]Song, error) {
+	rows, err := q.db.QueryContext(ctx, searchSongs, arg.Title, arg.UserID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Song
+	for rows.Next() {
+		var i Song
+		if err := rows.Scan(
+			&i.ID,
+			&i.PcID,
+			&i.Admin,
+			&i.Author,
+			&i.CcliNumber,
+			&i.CopyRight,
+			&i.Themes,
+			&i.Title,
+			&i.UserID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
