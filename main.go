@@ -51,12 +51,16 @@ func main() {
 	mux.Handle("/events/{id}", cfg.authMiddleware(cfg.handlerEvents)) 
 	
 	// API
-	mux.HandleFunc("POST /api/register", cfg.register)
-	mux.HandleFunc("POST /api/login", cfg.login)
 	mux.Handle("POST /api/events", cfg.authMiddleware(cfg.addEvent))
+	mux.Handle("PUT /api/events", cfg.authMiddleware(cfg.updateEventDate))
+	mux.Handle("POST /api/songs", cfg.authMiddleware(cfg.getSongs))
+	mux.Handle("GET /api/songs/{id}", cfg.authMiddleware(cfg.getArrangements))
+	mux.Handle("POST /api/event_arrangements", cfg.authMiddleware(cfg.addArrangementToEvent))
 
 	// AUTH
 	mux.HandleFunc("/pc/callback", cfg.planningcentercallback)
+	mux.HandleFunc("POST /api/register", cfg.register)
+	mux.HandleFunc("POST /api/login", cfg.login)
 
 	server := &http.Server{
 		Handler: mux,
