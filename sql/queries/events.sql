@@ -10,3 +10,9 @@ WHERE user_id = $1;
 -- name: GetEventById :one
 SELECT * FROM events 
 WHERE id = $1;
+
+-- name: UpdateEventDate :one
+UPDATE events
+SET date = $1
+WHERE id = $2
+RETURNING *;

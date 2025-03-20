@@ -12,3 +12,8 @@ JOIN arrangements a
     )
 WHERE ea.event_id = $1
 ORDER BY is_selected DESC;
+
+-- name: AddArrangementToEvent :one
+INSERT INTO events_arrangements (id, event_id, arrangement_id)
+VALUES (gen_random_uuid(), $1, $2)
+RETURNING *;
