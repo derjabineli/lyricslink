@@ -11,8 +11,13 @@
     <script defer src="/static/event.js"></script>
     <link href="/static/output.css" rel="stylesheet" />
     <script src="/static/alpine/songs.js"></script>
+    <script src="/static/alpine/event.js"></script>
   </head>
-  <body class="p-6">
+  <body
+    class="p-6"
+    x-data="eventComponent"
+    x-init="id = '{{.ID}}'; name = '{{.Name}}'; date = '{{.Date}}'"
+  >
     <nav
       class="bg-white shadow-md p-5 flex justify-between items-center mb-6 rounded-full"
     >
@@ -31,12 +36,15 @@
     <div
       id="newSongModal"
       x-data="newSongModalComponent"
-      class="fixed inset-0 flex items-center justify-center backdrop-blur-sm bg-white/10"
+      class="fixed inset-0 flex items-center justify-center backdrop-blur-sm bg-white/10 hidden"
     >
       <div class="bg-white p-6 rounded-lg shadow-lg w-lg">
-        <h2 class="text-xl font-semibold mb-4">Add Song</h2>
-        <form @submit.prevent="querySongs">
-          <div class="w-full max-w-lg mx-auto mt-10">
+        <div class="flex justify-between">
+          <h2 class="text-xl font-semibold mb-4">Add Song</h2>
+          <a onclick="showAddSongModal()" class="cursor-pointer">&#x2715;</a>
+        </div>
+        <div class="w-full max-w-lg mx-auto mt-10">
+          <form @submit.prevent="querySongs" id="songSearch">
             <label for="search" class="block text-gray-700 font-medium"
               >Search Song</label
             >
@@ -54,7 +62,10 @@
             >
               <div class="px-4 py-2 hover:bg-gray-100 cursor-pointer">
                 <p class="font-bold text-lg">Add New Song</p>
-                <p class="text-stone-800 italic">Click to add new song</p>
+                <p class="text-stone-800">
+                  Click to add new song:
+                  <span class="italic" x-text="query"></span>
+                </p>
               </div>
             </div>
             <div
@@ -62,7 +73,10 @@
               x-show="songs.length > 0"
             >
               <template x-for="song in songs" :key="song.id">
-                <div class="px-4 py-2 hover:bg-gray-100 cursor-pointer">
+                <div
+                  class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                  @click="getArrangements(song.id)"
+                >
                   <p class="font-bold text-lg" x-text="song.title"></p>
                   <p class="text-stone-800 italic" x-text="song.author"></p>
                   <p class="text-stone-800 italic" x-text="song.themes">
@@ -71,30 +85,49 @@
                 </div>
               </template>
             </div>
-          </div>
-          <button
-            type="submit"
-            class="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-700 transition cursor-pointer"
-          >
-            Submit
-          </button>
-        </form>
+          </form>
+
+          <form id="arrangementForm" class="hidden">
+            <label for="search" class="block text-gray-700 font-medium"
+              >Select Arrangement</label
+            >
+            <div class="mt-2 bg-white shadow-md max-h-40 overflow-y-auto">
+              <template
+                x-for="arrangement in arrangements"
+                :key="arrangement.id"
+              >
+                <div
+                  class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                  @click="addArrangementToEvent(arrangement.id)"
+                >
+                  <p class="font-bold text-lg" x-text="arrangement.name"></p>
+                </div>
+              </template>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
 
     <div class="max-w-4xl mx-auto">
       <div class="space-y-4">
         <h1 class="font-bold text-4xl">{{.Name}}</h1>
-        <input class="cursor-pointer" type="date" value="{{.Date}}" />
+        <input
+          class="cursor-pointer"
+          type="date"
+          x-model="date"
+          eventId="{{.ID}}"
+          @change="updateEvent()"
+        />
       </div>
       <div class="space-y-4 mt-6 flex justify-between">
         <h2 class="font-bold text-3xl">Songs</h2>
-        <a class="cursor-pointer">+</a>
+        <a @click="showAddSongModal()" class="cursor-pointer">+</a>
       </div>
       {{range .Songs}}
       <div
         class="mt-6 hover:bg-gray-100 cursor-pointer"
-        onclick="handleClick(this)"
+        @click="showArrangements(this)"
       >
         <div class="flex justify-between">
           <h2 class="font-bold text-xl">{{.Title}}</h2>

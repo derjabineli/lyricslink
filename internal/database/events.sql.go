@@ -91,3 +91,29 @@ func (q *Queries) GetEventsByUserId(ctx context.Context, userID uuid.UUID) ([]Ev
 	}
 	return items, nil
 }
+
+const updateEventDate = `-- name: UpdateEventDate :one
+UPDATE events
+SET date = $1
+WHERE id = $2
+RETURNING id, name, date, created_at, updated_at, user_id
+`
+
+type UpdateEventDateParams struct {
+	Date time.Time
+	ID   uuid.UUID
+}
+
+func (q *Queries) UpdateEventDate(ctx context.Context, arg UpdateEventDateParams) (Event, error) {
+	row := q.db.QueryRowContext(ctx, updateEventDate, arg.Date, arg.ID)
+	var i Event
+	err := row.Scan(
+		&i.ID,
+		&i.Name,
+		&i.Date,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserID,
+	)
+	return i, err
+}

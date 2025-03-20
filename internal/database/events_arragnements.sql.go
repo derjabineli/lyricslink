@@ -12,6 +12,24 @@ import (
 	"github.com/google/uuid"
 )
 
+const addArrangementToEvent = `-- name: AddArrangementToEvent :one
+INSERT INTO events_arrangements (id, event_id, arrangement_id)
+VALUES (gen_random_uuid(), $1, $2)
+RETURNING event_id, arrangement_id, id
+`
+
+type AddArrangementToEventParams struct {
+	EventID       uuid.UUID
+	ArrangementID uuid.UUID
+}
+
+func (q *Queries) AddArrangementToEvent(ctx context.Context, arg AddArrangementToEventParams) (EventsArrangement, error) {
+	row := q.db.QueryRowContext(ctx, addArrangementToEvent, arg.EventID, arg.ArrangementID)
+	var i EventsArrangement
+	err := row.Scan(&i.EventID, &i.ArrangementID, &i.ID)
+	return i, err
+}
+
 const getArrangementsWithEventId = `-- name: GetArrangementsWithEventId :many
 SELECT 
     a.id, a.name, a.lyrics, a.chord_chart, a.song_id, 

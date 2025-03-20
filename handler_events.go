@@ -20,6 +20,7 @@ type newEventParameters struct {
 }
 
 type eventParameters struct {
+	ID uuid.UUID
 	Name string
 	Date string
 	Songs map[uuid.UUID]songParameters
@@ -46,13 +47,13 @@ type arrangementParameters struct {
 	IsSelected bool
 }
 
+type updateEventParameters struct {
+	ID uuid.UUID 	`json:"id"`
+	Name string 	`json:"name"`
+	Date string 	`json:"date"`
+}
+
 func (cfg *config) handlerEvents(w http.ResponseWriter, r *http.Request) {
-	userID, err := getUserIDFromContext(r)
-	if err != nil {
-		fmt.Printf("Error: %v\n", err)
-		return
-	}
-	fmt.Print(userID)
 	eventQuery := path.Base(r.URL.Path)
 
 	eventID, err := uuid.Parse(eventQuery)
@@ -68,7 +69,7 @@ func (cfg *config) handlerEvents(w http.ResponseWriter, r *http.Request) {
 
 	arrangements, _ := cfg.db.GetArrangementsWithEventId(context.Background(), eventID)
 
-	eventParams := eventParameters{Name: event.Name, Date: formattedDate, Songs: map[uuid.UUID]songParameters{}}
+	eventParams := eventParameters{ID: eventID, Name: event.Name, Date: formattedDate, Songs: map[uuid.UUID]songParameters{}}
 
 	for _, a := range arrangements {
 		song, exists := eventParams.Songs[a.SongID]
@@ -130,4 +131,20 @@ func (cfg *config) addEvent(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusCreated, event)
+}
+
+func (cfg *config) updateEventDate(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	defer r.Body.Close()
+	eventParams := updateEventParameters{}
+	decoder.Decode(&eventParams)
+
+	formattedTime, _ := time.Parse("2006-01-02", eventParams.Date)
+
+	updatedEvent, err := cfg.db.UpdateEventDate(context.Background(), database.UpdateEventDateParams{ID: eventParams.ID, Date: formattedTime})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Unable to update event")
+	}
+
+	respondWithJSON(w, http.StatusOK, updatedEvent)
 }
