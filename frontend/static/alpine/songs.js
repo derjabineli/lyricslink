@@ -3,10 +3,11 @@ document.addEventListener("alpine:init", () => {
   Alpine.data("newSongModalComponent", () => ({
     query: "",
     songs: [],
+    arrangements: [],
 
     async querySongs() {
       if (this.query.length === 0) {
-        this.songs = [] // ✅ Clear results when input is empty
+        this.songs = []
         return
       }
 
@@ -20,7 +21,6 @@ document.addEventListener("alpine:init", () => {
         })
 
         let data = await response.json()
-        console.log(data)
         if (!response.ok) {
           this.errorMessage =
             data.error || "Something went wrong. Please try again"
@@ -31,6 +31,37 @@ document.addEventListener("alpine:init", () => {
         console.error(error)
         this.errorMessage = "An error occurred. Please try again."
       }
+    },
+
+    async getArrangements(key) {
+      try {
+        let response = await fetch(`/api/songs/${key}`, {
+          method: "GET",
+        })
+        let data = await response.json()
+        if (response.ok) {
+          songSeachDiv = document.getElementById("songSearch")
+          arrangementFormDiv = document.getElementById("arrangementForm")
+          songSeachDiv.classList.add("hidden")
+          arrangementFormDiv.classList.remove("hidden")
+          this.arrangements = data
+        }
+      } catch (error) {}
+    },
+
+    async addArrangementToEvent(arrangement_id) {
+      pathname = window.location.pathname
+      event_id = pathname.split("/events/").join("")
+      try {
+        let response = await fetch(`/api/event_arrangements`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            event_id: event_id,
+            arrangement_id: arrangement_id,
+          }),
+        })
+      } catch (error) {}
     },
   }))
 })
