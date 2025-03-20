@@ -27,6 +27,22 @@ type songResultParameters struct {
 }
 
 
+func getInt32Value (n sql.NullInt32) int {
+	if n.Valid {
+		return int(n.Int32)
+	} else {
+		return 0
+	}
+}
+
+func getSqlStringValue (s sql.NullString) string {
+	if s.Valid {
+		return s.String
+	} else {
+		return ""
+	}
+}
+
 
 func (cfg *config) getSongs(w http.ResponseWriter, r *http.Request) {
 	userID, err := getUserIDFromContext(r)
@@ -63,20 +79,4 @@ func (cfg *config) getSongs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, 200, songResults)
-}
-
-func getInt32Value (n sql.NullInt32) int {
-	if n.Valid {
-		return int(n.Int32)
-	} else {
-		return 0
-	}
-}
-
-func getSqlStringValue (s sql.NullString) string {
-	if s.Valid {
-		return s.String
-	} else {
-		return ""
-	}
 }
