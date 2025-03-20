@@ -13,9 +13,9 @@ import (
 )
 
 const addArrangementToEvent = `-- name: AddArrangementToEvent :one
-INSERT INTO events_arrangements (id, event_id, arrangement_id)
-VALUES (gen_random_uuid(), $1, $2)
-RETURNING event_id, arrangement_id, id
+INSERT INTO events_arrangements (id, event_id, arrangement_id, created_at, updated_at)
+VALUES (gen_random_uuid(), $1, $2, NOW(), NOW())
+RETURNING event_id, arrangement_id, id, created_at, updated_at
 `
 
 type AddArrangementToEventParams struct {
@@ -26,7 +26,13 @@ type AddArrangementToEventParams struct {
 func (q *Queries) AddArrangementToEvent(ctx context.Context, arg AddArrangementToEventParams) (EventsArrangement, error) {
 	row := q.db.QueryRowContext(ctx, addArrangementToEvent, arg.EventID, arg.ArrangementID)
 	var i EventsArrangement
-	err := row.Scan(&i.EventID, &i.ArrangementID, &i.ID)
+	err := row.Scan(
+		&i.EventID,
+		&i.ArrangementID,
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
 	return i, err
 }
 
@@ -43,7 +49,7 @@ JOIN arrangements a
         SELECT song_id FROM arrangements WHERE id = ea.arrangement_id
     )
 WHERE ea.event_id = $1
-ORDER BY is_selected DESC
+ORDER BY created_at ASC, is_selected DESC
 `
 
 type GetArrangementsWithEventIdRow struct {

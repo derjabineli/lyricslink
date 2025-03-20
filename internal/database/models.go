@@ -32,6 +32,8 @@ type EventsArrangement struct {
 	EventID       uuid.UUID
 	ArrangementID uuid.UUID
 	ID            uuid.UUID
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }
 
 type EventsSong struct {
