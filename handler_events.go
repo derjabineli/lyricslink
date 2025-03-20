@@ -20,31 +20,31 @@ type newEventParameters struct {
 }
 
 type eventParameters struct {
-	ID uuid.UUID
-	Name string
-	Date string
-	Songs map[uuid.UUID]songParameters
+	ID uuid.UUID 	`json:"id"`
+	Name string		`json:"name"`
+	Date string		`json:"date"`
+	Songs map[uuid.UUID]songParameters `json:"songs"`
 }
 
 type songParameters struct {
-	ID uuid.UUID
-	PC_ID int
-	Admin string
-	Author string
-	CCLI int
-	Copyright string
-	Themes string
-	Title string
-	Arrangements []arrangementParameters
+	ID uuid.UUID		`json:"id"`
+	PC_ID int			`json:"pcId"`
+	Admin string		`json:"admin"`		
+	Author string		`json:"author"`
+	CCLI int			`json:"ccli"`
+	Copyright string	`json:"copyright"`
+	Themes string		`json:"themes"`
+	Title string		`json:"title"`
+	Arrangements []arrangementParameters `json:"arrangements"`
 }
 
 type arrangementParameters struct {
-	ID uuid.UUID
-	Name string
-	Lyrics template.HTML
-	ChordChart string
-	SongID uuid.UUID
-	IsSelected bool
+	ID uuid.UUID 			`json:"id"`
+	Name string				`json:"name"`
+	Lyrics template.HTML	`json:"lyrics"`
+	ChordChart string		`json:"chordChart"`
+	SongID uuid.UUID		`json:"songId"`
+	IsSelected bool			`json:"isSelected"`
 }
 
 type updateEventParameters struct {
@@ -96,14 +96,22 @@ func (cfg *config) handlerEvents(w http.ResponseWriter, r *http.Request) {
 		eventParams.Songs[a.SongID] = song
 	}
 
-	t, err := template.ParseFiles(path.Join("frontend", "views", "event.html"))
+	eventJSON, _ := json.Marshal(eventParams)
+
+	t, err := template.ParseFiles(path.Join("frontend", "views", "event_test.html"))
 	if err != nil {
 		http.Error(w, "Error loading page", http.StatusInternalServerError)
 		log.Println("Template parsing error:", err)
 		return
 	}
+
+	eventData := struct {
+		Event template.JS
+	}{
+		Event: template.JS(eventJSON),
+	}
 	
-	err = t.Execute(w, eventParams)
+	err = t.Execute(w, eventData)
 	if err != nil {
 		http.Error(w, "Error rendering page", http.StatusInternalServerError)
 		log.Println("Template execution error:", err)
