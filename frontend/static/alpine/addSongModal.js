@@ -2,7 +2,7 @@ document.addEventListener("alpine:init", () => {
   console.log("MOUNTED")
   Alpine.data("newSongModalComponent", () => ({
     query: "",
-    songs: [],
+    songs: {},
     arrangements: [],
 
     async querySongs() {
@@ -50,6 +50,12 @@ document.addEventListener("alpine:init", () => {
     },
 
     async addArrangementToEvent(arrangement_id) {
+      songInEvent = checkIfSongInEvent(this.songs, arrangement_id)
+      if (songInEvent) {
+        console.log("SONG ALREADY IN EVENT")
+        return
+      }
+
       pathname = window.location.pathname
       event_id = pathname.split("/events/").join("")
       try {
@@ -65,3 +71,7 @@ document.addEventListener("alpine:init", () => {
     },
   }))
 })
+
+function checkIfSongInEvent(songs, key) {
+  return songs.some((song) => key in song)
+}
