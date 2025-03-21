@@ -1,5 +1,7 @@
 document.addEventListener("alpine:init", () => {
-  console.log("MOUNTED")
+  Alpine.store("event", {
+    songModalOpen: false,
+  })
   Alpine.data("eventComponent", () => ({
     id: null,
     name: "",
@@ -21,5 +23,6 @@ document.addEventListener("alpine:init", () => {
         console.log(error)
       }
     },
+    async changeArrangement(arrangement_id) {},
   }))
 })
