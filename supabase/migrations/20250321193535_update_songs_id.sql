@@ -1,0 +1,19 @@
+DROP TABLE events_songs;
+
+ALTER TABLE arrangements DROP CONSTRAINT fk_song;
+
+ALTER TABLE arrangements DROP COLUMN song_id;
+
+ALTER TABLE arrangements ADD COLUMN song_id INTEGER NOT NULL;
+
+ALTER TABLE songs DROP CONSTRAINT songs_pkey;
+
+ALTER TABLE songs DROP COLUMN id;
+
+ALTER TABLE songs ADD COLUMN id INTEGER NOT NULL;
+
+ALTER TABLE songs ADD PRIMARY KEY (id);
+
+ALTER TABLE arrangements 
+ADD CONSTRAINT fk_song 
+FOREIGN KEY (song_id) REFERENCES songs(id);
