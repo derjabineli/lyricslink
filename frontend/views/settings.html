@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
+    ></script>
+    <script src="/static/alpine/userSettings.js"></script>
+    <link href="/static/output.css" rel="stylesheet" />
+    <title>Settings</title>
+  </head>
+  <body class="p-6">
+    <nav
+      class="bg-white shadow-md p-5 flex justify-between items-center mb-6 rounded-full"
+    >
+      <a href="/dashboard"><h1 class="text-2xl font-bold">LyricLink</h1></a>
+      <div class="flex items-center space-x-4">
+        <a href="/settings">
+          <div class="w-10 h-10 bg-gray-300 rounded-full"></div>
+        </a>
+      </div>
+    </nav>
+
+    <div
+      x-data="userSettings"
+      id="settings"
+      class="m-auto px-8 p-32 text-black-800 md:w-[650px]"
+    >
+      <div class="font-title">
+        <h2 class="text-6xl font-extrabold">Settings</h2>
+      </div>
+
+      <div class="space-y-6 pt-12 text-xl">
+        <div>
+          <label class="block font-semibold">First Name</label>
+          <p class="p-3">{{.FirstName}}</p>
+        </div>
+        <div>
+          <label class="block font-semibold">Last Name</label>
+          <p class="p-3">{{.LastName}}</p>
+        </div>
+        <div>
+          <label class="block font-semibold">Email</label>
+          <p class="p-3">{{.Email}}</p>
+        </div>
+        <div>
+          <label class="block font-semibold">User Since</label>
+          <p class="p-3">{{.CreatedAt}}</p>
+        </div>
+        <div>
+          <h3 class="block font-semibold">Sync Songs From Planning Center</h3>
+          <p>
+            Syncing your songs with Planning Center is only available if you
+            have admin rights to your Church's Services Account
+          </p>
+          <button
+            @click="openLoginPopup()"
+            type="submit"
+            class="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-700 transition cursor-pointer"
+          >
+            Sync
+          </button>
+          <p x-text="errorMessage" class="text-red-600"></p>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
