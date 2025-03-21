@@ -1,0 +1,1 @@
+ALTER TABLE arrangements ADD COLUMN pc_id INTEGER;

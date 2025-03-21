@@ -1,0 +1,9 @@
+ALTER TABLE users_songs DROP CONSTRAINT fk_song;
+ALTER TABLE users_songs DROP COLUMN song_id;
+
+ALTER TABLE arrangements DROP CONSTRAINT fk_song;
+ALTER TABLE arrangements DROP COLUMN song_id;
+
+ALTER TABLE songs DROP CONSTRAINT songs_pkey;
+ALTER TABLE songs DROP COLUMN id;
+ALTER TABLE songs ADD COLUMN id UUID PRIMARY KEY;
