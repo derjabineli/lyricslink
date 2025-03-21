@@ -12,11 +12,15 @@ import (
 )
 
 type Arrangement struct {
-	ID         uuid.UUID
-	Name       string
-	Lyrics     string
-	ChordChart sql.NullString
-	SongID     uuid.UUID
+	Name          string
+	Lyrics        string
+	ChordChart    sql.NullString
+	ID            uuid.UUID
+	PcID          sql.NullInt32
+	ChordChartKey sql.NullString
+	HasChordChart sql.NullBool
+	HasChords     sql.NullBool
+	SongID        uuid.UUID
 }
 
 type Event struct {
@@ -30,19 +34,13 @@ type Event struct {
 
 type EventsArrangement struct {
 	EventID       uuid.UUID
-	ArrangementID uuid.UUID
 	ID            uuid.UUID
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
-}
-
-type EventsSong struct {
-	EventID uuid.UUID
-	SongID  uuid.UUID
+	ArrangementID uuid.UUID
 }
 
 type Song struct {
-	ID         uuid.UUID
 	PcID       sql.NullInt32
 	Admin      sql.NullString
 	Author     sql.NullString
@@ -50,7 +48,7 @@ type Song struct {
 	CopyRight  sql.NullString
 	Themes     sql.NullString
 	Title      string
-	UserID     uuid.UUID
+	ID         uuid.UUID
 }
 
 type User struct {
@@ -62,4 +60,10 @@ type User struct {
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 	PcAuthorized   bool
+}
+
+type UsersSong struct {
+	ID     uuid.UUID
+	UserID uuid.UUID
+	SongID uuid.UUID
 }

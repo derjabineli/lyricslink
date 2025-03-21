@@ -7,12 +7,13 @@ package database
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 )
 
 const getSongById = `-- name: GetSongById :one
-SELECT id, pc_id, admin, author, ccli_number, copy_right, themes, title, user_id FROM songs
+SELECT pc_id, admin, author, ccli_number, copy_right, themes, title, id FROM songs
 WHERE id = $1
 `
 
@@ -20,7 +21,6 @@ func (q *Queries) GetSongById(ctx context.Context, id uuid.UUID) (Song, error) {
 	row := q.db.QueryRowContext(ctx, getSongById, id)
 	var i Song
 	err := row.Scan(
-		&i.ID,
 		&i.PcID,
 		&i.Admin,
 		&i.Author,
@@ -28,33 +28,45 @@ func (q *Queries) GetSongById(ctx context.Context, id uuid.UUID) (Song, error) {
 		&i.CopyRight,
 		&i.Themes,
 		&i.Title,
-		&i.UserID,
+		&i.ID,
 	)
 	return i, err
 }
 
 const searchSongs = `-- name: SearchSongs :many
-SELECT id, pc_id, admin, author, ccli_number, copy_right, themes, title, user_id FROM songs
-WHERE title LIKE $1
-AND user_id = $2
+SELECT us.song_id, s.pc_id, s.admin, s.author, s.ccli_number, s.copy_right, s.themes, s.title, s.id FROM users_songs us
+RIGHT JOIN songs s ON songs(id) = song_id
+WHERE users_songs(user_id) = $1 AND title LIKE $2
 `
 
 type SearchSongsParams struct {
-	Title  string
 	UserID uuid.UUID
+	Title  string
 }
 
-func (q *Queries) SearchSongs(ctx context.Context, arg SearchSongsParams) ([]Song, error) {
-	rows, err := q.db.QueryContext(ctx, searchSongs, arg.Title, arg.UserID)
+type SearchSongsRow struct {
+	SongID     uuid.NullUUID
+	PcID       sql.NullInt32
+	Admin      sql.NullString
+	Author     sql.NullString
+	CcliNumber sql.NullInt32
+	CopyRight  sql.NullString
+	Themes     sql.NullString
+	Title      string
+	ID         uuid.UUID
+}
+
+func (q *Queries) SearchSongs(ctx context.Context, arg SearchSongsParams) ([]SearchSongsRow, error) {
+	rows, err := q.db.QueryContext(ctx, searchSongs, arg.UserID, arg.Title)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Song
+	var items []SearchSongsRow
 	for rows.Next() {
-		var i Song
+		var i SearchSongsRow
 		if err := rows.Scan(
-			&i.ID,
+			&i.SongID,
 			&i.PcID,
 			&i.Admin,
 			&i.Author,
@@ -62,7 +74,7 @@ func (q *Queries) SearchSongs(ctx context.Context, arg SearchSongsParams) ([]Son
 			&i.CopyRight,
 			&i.Themes,
 			&i.Title,
-			&i.UserID,
+			&i.ID,
 		); err != nil {
 			return nil, err
 		}

@@ -12,7 +12,7 @@ import (
 )
 
 const getArrangementWithSongId = `-- name: GetArrangementWithSongId :many
-SELECT id, name, lyrics, chord_chart, song_id FROM arrangements 
+SELECT name, lyrics, chord_chart, id, pc_id, chord_chart_key, has_chord_chart, has_chords, song_id FROM arrangements 
 WHERE song_id = $1
 `
 
@@ -26,10 +26,14 @@ func (q *Queries) GetArrangementWithSongId(ctx context.Context, songID uuid.UUID
 	for rows.Next() {
 		var i Arrangement
 		if err := rows.Scan(
-			&i.ID,
 			&i.Name,
 			&i.Lyrics,
 			&i.ChordChart,
+			&i.ID,
+			&i.PcID,
+			&i.ChordChartKey,
+			&i.HasChordChart,
+			&i.HasChords,
 			&i.SongID,
 		); err != nil {
 			return nil, err

@@ -15,7 +15,7 @@ import (
 const addArrangementToEvent = `-- name: AddArrangementToEvent :one
 INSERT INTO events_arrangements (id, event_id, arrangement_id, created_at, updated_at)
 VALUES (gen_random_uuid(), $1, $2, NOW(), NOW())
-RETURNING event_id, arrangement_id, id, created_at, updated_at
+RETURNING event_id, id, created_at, updated_at, arrangement_id
 `
 
 type AddArrangementToEventParams struct {
@@ -28,17 +28,17 @@ func (q *Queries) AddArrangementToEvent(ctx context.Context, arg AddArrangementT
 	var i EventsArrangement
 	err := row.Scan(
 		&i.EventID,
-		&i.ArrangementID,
 		&i.ID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.ArrangementID,
 	)
 	return i, err
 }
 
 const getArrangementsWithEventId = `-- name: GetArrangementsWithEventId :many
 SELECT 
-    a.id, a.name, a.lyrics, a.chord_chart, a.song_id, 
+    a.name, a.lyrics, a.chord_chart, a.id, a.pc_id, a.chord_chart_key, a.has_chord_chart, a.has_chords, a.song_id, 
     CASE 
         WHEN a.id = ea.arrangement_id THEN TRUE 
         ELSE FALSE 
@@ -49,16 +49,20 @@ JOIN arrangements a
         SELECT song_id FROM arrangements WHERE id = ea.arrangement_id
     )
 WHERE ea.event_id = $1
-ORDER BY created_at ASC, is_selected DESC
+ORDER BY created_at ASC,  is_selected DESC
 `
 
 type GetArrangementsWithEventIdRow struct {
-	ID         uuid.UUID
-	Name       string
-	Lyrics     string
-	ChordChart sql.NullString
-	SongID     uuid.UUID
-	IsSelected bool
+	Name          string
+	Lyrics        string
+	ChordChart    sql.NullString
+	ID            uuid.UUID
+	PcID          sql.NullInt32
+	ChordChartKey sql.NullString
+	HasChordChart sql.NullBool
+	HasChords     sql.NullBool
+	SongID        uuid.UUID
+	IsSelected    bool
 }
 
 func (q *Queries) GetArrangementsWithEventId(ctx context.Context, eventID uuid.UUID) ([]GetArrangementsWithEventIdRow, error) {
@@ -71,10 +75,14 @@ func (q *Queries) GetArrangementsWithEventId(ctx context.Context, eventID uuid.U
 	for rows.Next() {
 		var i GetArrangementsWithEventIdRow
 		if err := rows.Scan(
-			&i.ID,
 			&i.Name,
 			&i.Lyrics,
 			&i.ChordChart,
+			&i.ID,
+			&i.PcID,
+			&i.ChordChartKey,
+			&i.HasChordChart,
+			&i.HasChords,
 			&i.SongID,
 			&i.IsSelected,
 		); err != nil {
