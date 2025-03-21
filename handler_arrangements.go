@@ -66,3 +66,19 @@ func (cfg *config) addArrangementToEvent(w http.ResponseWriter, r *http.Request)
 		return
 	}
 }
+
+func (cfg *config) updateEventArrangement(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+	defer r.Body.Close()
+	eventArrangement := eventArrangementBody{}
+	decoder.Decode(&eventArrangement)
+
+	_, err := cfg.db.AddArrangementToEvent(context.Background(), database.AddArrangementToEventParams{
+		EventID: eventArrangement.EventID,
+		ArrangementID: eventArrangement.ArrangementID,
+	})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't add arrangement to event")
+		return
+	}
+}
