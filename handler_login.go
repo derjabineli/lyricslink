@@ -10,23 +10,6 @@ import (
 	"github.com/derjabineli/lyricslink/internal/auth"
 )
 
-type accessParameters struct {
-	GrantType string `json:"grant_type"`
-	Code string `json:"code"`
-	ClientID string `json:"client_id"`
-	ClientSecret string `json:"client_secret"`
-	RedirectURI string `json:"redirect_uri"`
-}
-
-type authorizationParameters struct {
-	AccessToken string `json:"access_token"`
-	TokenType string `json:"token_type"`
-	ExpiresIn int `json:"expires_in"`
-	RefreshToken string `json:"refresh_token"`
-	Scope string `json:"scope"`
-	CreatedAt int `json:"created_at"`
-}
-
 type loginParameters struct {
 	Email string `json:"email"`
 	Password string `json:"password"`
