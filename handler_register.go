@@ -90,7 +90,7 @@ func newJWT(id uuid.UUID, tokenSecret string, expiresIn time.Duration) (*http.Co
 		Value:    jwtToken,
 		HttpOnly: true, // Make the cookie inaccessible to JavaScript
 		Secure:   false, // Ensure the cookie is only sent over HTTPS
-		SameSite: http.SameSiteStrictMode, // Protect against CSRF attacks
+		SameSite: http.SameSiteLaxMode, // Protect against CSRF attacks
 		Expires:  time.Now().Add(24 * time.Hour), // Set cookie expiration
 		Path:     "/", // Define cookie scope
 	}
