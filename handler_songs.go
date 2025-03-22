@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"net/http"
 
@@ -23,23 +22,6 @@ type songResultParameters struct {
     CopyRight  string	`json:"copy_right"`
     Themes     string	`json:"themes"`
     Title      string			`json:"title"`
-}
-
-
-func getInt32Value (n sql.NullInt32) int {
-	if n.Valid {
-		return int(n.Int32)
-	} else {
-		return 0
-	}
-}
-
-func getSqlStringValue (s sql.NullString) string {
-	if s.Valid {
-		return s.String
-	} else {
-		return ""
-	}
 }
 
 
