@@ -64,6 +64,7 @@ type User struct {
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
 	PcAuthorized   bool
+	Avatar         sql.NullString
 }
 
 type UsersSong struct {

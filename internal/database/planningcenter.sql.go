@@ -12,37 +12,27 @@ import (
 	"github.com/google/uuid"
 )
 
-const createUserSongRelation = `-- name: CreateUserSongRelation :exec
-INSERT INTO users_songs (id, user_id, song_id)
-VALUES(gen_random_uuid(), $1, $2)
-`
-
-type CreateUserSongRelationParams struct {
-	UserID uuid.UUID
-	SongID uuid.UUID
-}
-
-func (q *Queries) CreateUserSongRelation(ctx context.Context, arg CreateUserSongRelationParams) error {
-	_, err := q.db.ExecContext(ctx, createUserSongRelation, arg.UserID, arg.SongID)
-	return err
-}
-
-const savePCArrangement = `-- name: SavePCArrangement :one
+const addPCArrangement = `-- name: AddPCArrangement :one
+WITH upsert AS (
+    UPDATE arrangements
+    SET updated_at = NOW(),
+        name = $1,
+        lyrics = $2,
+        chord_chart = $3, 
+        chord_chart_key = $4, 
+        has_chord_chart = $5, 
+        has_chords = $6,
+        song_id = $8
+    WHERE pc_id = $7
+    RETURNING id
+)
 INSERT INTO arrangements (id, created_at, updated_at, name, lyrics, chord_chart, chord_chart_key, has_chord_chart, has_chords, pc_id, song_id)
-VALUES(gen_random_uuid(), NOW(), NOW(), $1, $2, $3, $4, $5, $6, $7, $8)
-ON CONFLICT (pc_id) 
-DO UPDATE SET
-    updated_at = NOW(),
-    name = EXCLUDED.name,
-    lyrics = EXCLUDED.lyrics,
-    chord_chart = EXCLUDED.chord_chart, 
-    chord_chart_key = EXCLUDED.chord_chart_key, 
-    has_chord_chart = EXCLUDED.has_chord_chart, 
-    has_chords = EXCLUDED.has_chords
+SELECT gen_random_uuid(), NOW(), NOW(), $1, $2, $3, $4, $5, $6, $7, $8
+WHERE NOT EXISTS (SELECT 1 FROM upsert)
 RETURNING id
 `
 
-type SavePCArrangementParams struct {
+type AddPCArrangementParams struct {
 	Name          string
 	Lyrics        string
 	ChordChart    sql.NullString
@@ -53,8 +43,8 @@ type SavePCArrangementParams struct {
 	SongID        uuid.UUID
 }
 
-func (q *Queries) SavePCArrangement(ctx context.Context, arg SavePCArrangementParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, savePCArrangement,
+func (q *Queries) AddPCArrangement(ctx context.Context, arg AddPCArrangementParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, addPCArrangement,
 		arg.Name,
 		arg.Lyrics,
 		arg.ChordChart,
@@ -69,22 +59,26 @@ func (q *Queries) SavePCArrangement(ctx context.Context, arg SavePCArrangementPa
 	return id, err
 }
 
-const savePCSong = `-- name: SavePCSong :one
+const addPCSong = `-- name: AddPCSong :one
+WITH upsert AS (
+    UPDATE songs
+    SET updated_at = NOW(),
+        title = $1,
+        themes = $2,
+        copy_right = $3, 
+        ccli_number = $4, 
+        author = $5, 
+        admin = $6
+    WHERE pc_id = $7
+    RETURNING id
+)
 INSERT INTO songs (id, created_at, updated_at, title, themes, copy_right, ccli_number, author, admin, pc_id)
-VALUES(gen_random_uuid(), NOW(), NOW(), $1, $2, $3, $4, $5, $6, $7)
-ON CONFLICT (pc_id) 
-DO UPDATE SET
-    updated_at = NOW(),
-    title = EXCLUDED.title,
-    themes = EXCLUDED.themes,
-    copy_right = EXCLUDED.copy_right, 
-    ccli_number = EXCLUDED.ccli_number, 
-    author = EXCLUDED.author, 
-    admin = EXCLUDED.admin
+SELECT gen_random_uuid(), NOW(), NOW(), $1, $2, $3, $4, $5, $6, $7
+WHERE NOT EXISTS (SELECT 1 FROM upsert)
 RETURNING id
 `
 
-type SavePCSongParams struct {
+type AddPCSongParams struct {
 	Title      string
 	Themes     sql.NullString
 	CopyRight  sql.NullString
@@ -94,8 +88,8 @@ type SavePCSongParams struct {
 	PcID       sql.NullInt32
 }
 
-func (q *Queries) SavePCSong(ctx context.Context, arg SavePCSongParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, savePCSong,
+func (q *Queries) AddPCSong(ctx context.Context, arg AddPCSongParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, addPCSong,
 		arg.Title,
 		arg.Themes,
 		arg.CopyRight,
@@ -107,4 +101,19 @@ func (q *Queries) SavePCSong(ctx context.Context, arg SavePCSongParams) (uuid.UU
 	var id uuid.UUID
 	err := row.Scan(&id)
 	return id, err
+}
+
+const createUserSongRelation = `-- name: CreateUserSongRelation :exec
+INSERT INTO users_songs (id, user_id, song_id)
+VALUES(gen_random_uuid(), $1, $2)
+`
+
+type CreateUserSongRelationParams struct {
+	UserID uuid.UUID
+	SongID uuid.UUID
+}
+
+func (q *Queries) CreateUserSongRelation(ctx context.Context, arg CreateUserSongRelationParams) error {
+	_, err := q.db.ExecContext(ctx, createUserSongRelation, arg.UserID, arg.SongID)
+	return err
 }

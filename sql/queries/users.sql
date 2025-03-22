@@ -10,3 +10,8 @@ WHERE email = $1;
 -- name: GetUserById :one
 SELECT * FROM users
 WHERE id = $1;
+
+-- name: UpdateUserAvatar :exec
+UPDATE users 
+SET avatar = $1
+WHERE id = $2;
