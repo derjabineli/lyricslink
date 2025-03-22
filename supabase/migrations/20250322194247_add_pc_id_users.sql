@@ -1,0 +1,1 @@
+ALTER TABLE users ADD COLUMN pc_id INTEGER;
