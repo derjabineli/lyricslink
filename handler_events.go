@@ -98,7 +98,7 @@ func (cfg *config) handlerEvents(w http.ResponseWriter, r *http.Request) {
 
 	eventJSON, _ := json.Marshal(eventParams)
 
-	t, err := template.ParseFiles(path.Join("frontend", "views", "event_test.html"))
+	t, err := template.ParseFiles(path.Join("frontend", "views", "event.html"))
 	if err != nil {
 		http.Error(w, "Error loading page", http.StatusInternalServerError)
 		log.Println("Template parsing error:", err)
