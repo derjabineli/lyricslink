@@ -37,8 +37,8 @@ type AddPCArrangementParams struct {
 	Lyrics        string
 	ChordChart    sql.NullString
 	ChordChartKey sql.NullString
-	HasChordChart sql.NullBool
-	HasChords     sql.NullBool
+	HasChordChart bool
+	HasChords     bool
 	PcID          sql.NullInt32
 	SongID        uuid.UUID
 }

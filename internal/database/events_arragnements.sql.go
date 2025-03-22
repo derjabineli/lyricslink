@@ -39,7 +39,7 @@ func (q *Queries) AddArrangementToEvent(ctx context.Context, arg AddArrangementT
 
 const getArrangementsWithEventId = `-- name: GetArrangementsWithEventId :many
 SELECT 
-    a.name, a.lyrics, a.chord_chart, a.id, a.pc_id, a.chord_chart_key, a.has_chord_chart, a.has_chords, a.song_id, a.created_at, a.updated_at, 
+    a.name, a.lyrics, a.chord_chart, a.id, a.pc_id, a.chord_chart_key, a.song_id, a.created_at, a.updated_at, a.has_chords, a.has_chord_chart, 
     CASE 
         WHEN a.id = ea.arrangement_id THEN TRUE 
         ELSE FALSE 
@@ -60,11 +60,11 @@ type GetArrangementsWithEventIdRow struct {
 	ID            uuid.UUID
 	PcID          sql.NullInt32
 	ChordChartKey sql.NullString
-	HasChordChart sql.NullBool
-	HasChords     sql.NullBool
 	SongID        uuid.UUID
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
+	HasChords     bool
+	HasChordChart bool
 	IsSelected    bool
 }
 
@@ -84,11 +84,11 @@ func (q *Queries) GetArrangementsWithEventId(ctx context.Context, eventID uuid.U
 			&i.ID,
 			&i.PcID,
 			&i.ChordChartKey,
-			&i.HasChordChart,
-			&i.HasChords,
 			&i.SongID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.HasChords,
+			&i.HasChordChart,
 			&i.IsSelected,
 		); err != nil {
 			return nil, err

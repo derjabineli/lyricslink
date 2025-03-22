@@ -18,11 +18,11 @@ type Arrangement struct {
 	ID            uuid.UUID
 	PcID          sql.NullInt32
 	ChordChartKey sql.NullString
-	HasChordChart sql.NullBool
-	HasChords     sql.NullBool
 	SongID        uuid.UUID
 	CreatedAt     time.Time
 	UpdatedAt     time.Time
+	HasChords     bool
+	HasChordChart bool
 }
 
 type Event struct {
