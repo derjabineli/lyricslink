@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"strconv"
 
 	"github.com/derjabineli/lyricslink/internal/database"
@@ -77,11 +76,11 @@ func  (cfg *config) savePCArrangementToDB(arrangement PlanningCenterArrangement,
 	cfg.db.AddPCArrangement(context.Background(), database.AddPCArrangementParams{
 		Name: arrangement.Attributes.Name,
     	Lyrics: arrangement.Attributes.Lyrics,
-    	ChordChart: sql.NullString{String: arrangement.Attributes.ChordChart, Valid: true},
-    	ChordChartKey: sql.NullString{String: arrangement.Attributes.ChordChart, Valid: true},
-    	HasChordChart: sql.NullBool{Bool: arrangement.Attributes.HasChordChart, Valid: true},
-    	HasChords: sql.NullBool{Bool: arrangement.Attributes.HasChords, Valid: true},
-    	PcID: sql.NullInt32{Int32: int32(arrangementID), Valid: true},
+    	ChordChart: validateSqlNullString(arrangement.Attributes.ChordChart),
+    	ChordChartKey: validateSqlNullString(arrangement.Attributes.ChordChartKey),
+    	HasChordChart: arrangement.Attributes.HasChordChart,
+    	HasChords: arrangement.Attributes.HasChords,
+    	PcID: validateSqlNullInt32(arrangementID),
     	SongID: songID,
 	})
 }
