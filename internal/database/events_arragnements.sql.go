@@ -8,6 +8,7 @@ package database
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/google/uuid"
 )
@@ -38,7 +39,7 @@ func (q *Queries) AddArrangementToEvent(ctx context.Context, arg AddArrangementT
 
 const getArrangementsWithEventId = `-- name: GetArrangementsWithEventId :many
 SELECT 
-    a.name, a.lyrics, a.chord_chart, a.id, a.pc_id, a.chord_chart_key, a.has_chord_chart, a.has_chords, a.song_id, 
+    a.name, a.lyrics, a.chord_chart, a.id, a.pc_id, a.chord_chart_key, a.has_chord_chart, a.has_chords, a.song_id, a.created_at, a.updated_at, 
     CASE 
         WHEN a.id = ea.arrangement_id THEN TRUE 
         ELSE FALSE 
@@ -49,7 +50,7 @@ JOIN arrangements a
         SELECT song_id FROM arrangements WHERE id = ea.arrangement_id
     )
 WHERE ea.event_id = $1
-ORDER BY created_at ASC,  is_selected DESC
+ORDER BY ea.created_at DESC,  is_selected DESC
 `
 
 type GetArrangementsWithEventIdRow struct {
@@ -62,6 +63,8 @@ type GetArrangementsWithEventIdRow struct {
 	HasChordChart sql.NullBool
 	HasChords     sql.NullBool
 	SongID        uuid.UUID
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 	IsSelected    bool
 }
 
@@ -84,6 +87,8 @@ func (q *Queries) GetArrangementsWithEventId(ctx context.Context, eventID uuid.U
 			&i.HasChordChart,
 			&i.HasChords,
 			&i.SongID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 			&i.IsSelected,
 		); err != nil {
 			return nil, err

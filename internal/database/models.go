@@ -21,6 +21,8 @@ type Arrangement struct {
 	HasChordChart sql.NullBool
 	HasChords     sql.NullBool
 	SongID        uuid.UUID
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
 }
 
 type Event struct {
@@ -49,6 +51,8 @@ type Song struct {
 	Themes     sql.NullString
 	Title      string
 	ID         uuid.UUID
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }
 
 type User struct {

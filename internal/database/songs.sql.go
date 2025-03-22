@@ -8,12 +8,13 @@ package database
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/google/uuid"
 )
 
 const getSongById = `-- name: GetSongById :one
-SELECT pc_id, admin, author, ccli_number, copy_right, themes, title, id FROM songs
+SELECT pc_id, admin, author, ccli_number, copy_right, themes, title, id, created_at, updated_at FROM songs
 WHERE id = $1
 `
 
@@ -29,12 +30,14 @@ func (q *Queries) GetSongById(ctx context.Context, id uuid.UUID) (Song, error) {
 		&i.Themes,
 		&i.Title,
 		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
 	)
 	return i, err
 }
 
 const searchSongs = `-- name: SearchSongs :many
-SELECT us.song_id, s.pc_id, s.admin, s.author, s.ccli_number, s.copy_right, s.themes, s.title, s.id FROM users_songs us
+SELECT us.song_id, s.pc_id, s.admin, s.author, s.ccli_number, s.copy_right, s.themes, s.title, s.id, s.created_at, s.updated_at FROM users_songs us
 RIGHT JOIN songs s ON songs(id) = song_id
 WHERE users_songs(user_id) = $1 AND title LIKE $2
 `
@@ -54,6 +57,8 @@ type SearchSongsRow struct {
 	Themes     sql.NullString
 	Title      string
 	ID         uuid.UUID
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }
 
 func (q *Queries) SearchSongs(ctx context.Context, arg SearchSongsParams) ([]SearchSongsRow, error) {
@@ -75,6 +80,8 @@ func (q *Queries) SearchSongs(ctx context.Context, arg SearchSongsParams) ([]Sea
 			&i.Themes,
 			&i.Title,
 			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
 		); err != nil {
 			return nil, err
 		}
