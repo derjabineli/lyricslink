@@ -8,40 +8,118 @@
       defer
       src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"
     ></script>
-    <script defer src="/static/event.js"></script>
     <link href="/static/output.css" rel="stylesheet" />
-    <script src="/static/alpine/songs.js"></script>
     <script src="/static/alpine/event.js"></script>
+    <script src="/static/alpine/addSongModal.js"></script>
+    <script defer src="/static/event.js"></script>
   </head>
   <body
     class="p-6"
     x-data="eventComponent"
-    x-init="id = '{{.ID}}'; name = '{{.Name}}'; date = '{{.Date}}';"
+    x-init="
+    event = JSON.parse($el.getAttribute('data-event'));
+    id = event.id;
+    date = event.date;
+    name = event.name;
+    songs = event.songs;
+    $store.event.event_id = id;
+    console.log(event);
+  "
+    data-event="{{ .Event }}"
   >
     <nav
       class="bg-white shadow-md p-5 flex justify-between items-center mb-6 rounded-full"
     >
-      <h1 class="text-2xl font-bold">LyricLink</h1>
+      <a href="/dashboard"><h1 class="text-2xl font-bold">LyricLink</h1></a>
       <div class="flex items-center space-x-4">
-        <a
-          class="justify-center rounded-xl border border-transparent bg-gray-900 px-4 py-2 text-md tracking-wide text-white transition-colors hover:bg-gray-700 cursor-pointer"
-          id="openModalBtn"
-        >
-          Add
-        </a>
         <div class="w-10 h-10 bg-gray-300 rounded-full"></div>
       </div>
     </nav>
 
+    <!-- NAME AND DATE SECTION -->
+    <section class="max-w-4xl mx-auto">
+      <div class="space-y-4">
+        <h1 class="font-bold text-4xl" x-text="name"></h1>
+        <input
+          class="border-2 px-2 py-4"
+          class="cursor-pointer"
+          type="date"
+          x-model="date"
+          @change="updateEvent()"
+        />
+      </div>
+      <div class="space-y-4 mt-6 flex justify-between">
+        <h2 class="font-bold text-3xl">Songs</h2>
+        <button
+          @click="$store.event.songModalOpen = ! $store.event.songModalOpen"
+          class="cursor-pointer"
+        >
+          +
+        </button>
+      </div>
+    </section>
+
+    <!-- SONGS -->
+    <section class="max-w-4xl mx-auto">
+      <template x-for="song in songs">
+        <div
+          class="mt-6 hover:bg-gray-100 cursor-pointer"
+          onclick="showArrangements(this)"
+        >
+          <div class="flex justify-between">
+            <h2 class="font-bold text-xl" x-text="song.title"></h2>
+            <h2>↓</h2>
+          </div>
+          <hr class="font-bold mb-0" />
+
+          <div
+            class="arrangements border-2 flex justify-center space-x-8 p-6 hidden z-100"
+          >
+            <template x-for="arrangement in song.arrangements">
+              <template x-if="arrangement.isSelected">
+                <div class="border-2 h-100 w-80 text-center overflow-scroll">
+                  <p x-html="arrangement.lyrics"></p>
+                </div>
+              </template>
+            </template>
+
+            <div>
+              <h2 class="font-bold text-3xl">Arrangements</h2>
+              <select
+                @change="changeArrangement($el.selectedOptions[0].value, $store.event.event_id)"
+              >
+                <template
+                  x-for="arrangement in song.arrangements"
+                  :key="arrangement.id"
+                >
+                  <option
+                    :value="arrangement.id"
+                    x-text="arrangement.name"
+                  ></option>
+                </template>
+              </select>
+            </div>
+          </div>
+        </div>
+      </template>
+    </section>
+
+    <!-- NewSongModal -->
     <section
       id="newSongModal"
       x-data="newSongModalComponent"
-      class="fixed inset-0 flex items-center justify-center backdrop-blur-sm bg-white/10 hidden"
+      class="fixed inset-0 flex items-center justify-center backdrop-blur-sm bg-white/10"
+      x-show="$store.event.songModalOpen"
     >
-      <div class="bg-white p-6 rounded-lg shadow-lg w-lg">
+      <div
+        class="bg-white p-6 rounded-lg shadow-lg w-lg"
+        @click.outside="$store.event.songModalOpen = false"
+      >
         <div class="flex justify-between">
           <h2 class="text-xl font-semibold mb-4">Add Song</h2>
-          <a onclick="showAddSongModal()" class="cursor-pointer">&#x2715;</a>
+          <a @click="$store.event.songModalOpen = false" class="cursor-pointer"
+            >&#x2715;</a
+          >
         </div>
         <div class="w-full max-w-lg mx-auto mt-10">
           <form @submit.prevent="querySongs" id="songSearch">
@@ -107,61 +185,6 @@
           </form>
         </div>
       </div>
-    </section>
-
-    <section class="max-w-4xl mx-auto">
-      <div class="space-y-4">
-        <h1 class="font-bold text-4xl">{{.Name}}</h1>
-        <input
-          class="cursor-pointer"
-          type="date"
-          x-model="date"
-          eventId="{{.ID}}"
-          @change="updateEvent()"
-        />
-      </div>
-      <div class="space-y-4 mt-6 flex justify-between">
-        <h2 class="font-bold text-3xl">Songs</h2>
-        <a onclick="showAddSongModal()" class="cursor-pointer">+</a>
-      </div>
-    </section>
-
-    <section class="max-w-4xl mx-auto">
-      {{range .Songs}}
-      <div
-        class="mt-6 hover:bg-gray-100 cursor-pointer"
-        onclick="showArrangements(this)"
-      >
-        <div class="flex justify-between">
-          <h2 class="font-bold text-xl">{{.Title}}</h2>
-          <h2>↓</h2>
-        </div>
-        <hr class="font-bold mb-0" />
-
-        <div
-          class="arrangements border-2 flex justify-center space-x-8 p-6 hidden z-100"
-        >
-          {{range .Arrangements}} {{if .IsSelected}}
-          <div class="border-2 h-100 w-80 text-center overflow-scroll">
-            <p>{{.Lyrics}}</p>
-          </div>
-          {{end}} {{end}}
-
-          <div>
-            <h2 class="font-bold text-3xl">Arrangements</h2>
-            <div>
-              <select id="arrangements" name="arrangements">
-                {{range .Arrangements}} {{if .IsSelected}}
-                <option value="{{.ID}}" selected>{{.Name}}</option>
-                {{else}}
-                <option value="{{.ID}}">{{.Name}}</option>
-                {{end}} {{end}}
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-      {{end}}
     </section>
   </body>
 </html>
