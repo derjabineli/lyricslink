@@ -23,7 +23,6 @@ type songResultParameters struct {
     CopyRight  string	`json:"copy_right"`
     Themes     string	`json:"themes"`
     Title      string			`json:"title"`
-    UserID     uuid.UUID		`json:"user_id"`
 }
 
 
@@ -56,7 +55,7 @@ func (cfg *config) getSongs(w http.ResponseWriter, r *http.Request) {
 	decoder.Decode(&searchParams)
 
 	dbSongResults, err := cfg.db.SearchSongs(context.Background(), database.SearchSongsParams{
-		Title: searchParams.Query + "%", // Append '%' for prefix matching
+		Title: searchParams.Query + "%", 
 		UserID: userID,
 	})
 	if err != nil {
@@ -74,7 +73,6 @@ func (cfg *config) getSongs(w http.ResponseWriter, r *http.Request) {
 			CopyRight: getSqlStringValue(song.CopyRight),
 			Themes: getSqlStringValue(song.Themes),
 			Title: song.Title,
-			UserID: song.UserID,
 		})
 	}
 
