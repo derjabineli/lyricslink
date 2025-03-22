@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -11,9 +12,19 @@ import (
 )
 
 type formattedEvent struct {
-	Name string
-	Date string
-	ID string
+	Link string `json:"link"`
+	Name string `json:"name"`
+	Date string	`json:"date"`
+	ID string	`json:"id"`
+}
+
+type userParameters struct {
+	Avatar string	`json:"avatar"`
+}
+
+type dashboardParameters struct {
+	User userParameters		`json:"user"`
+	Events []formattedEvent `json:"events"`
 }
 
 func (cfg *config) handlerDashboard(w http.ResponseWriter, r *http.Request) {
@@ -30,6 +41,19 @@ func (cfg *config) handlerDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	formattedEvents := formatEvents(events)
+	data := dashboardParameters{
+		User: userParameters{
+			Avatar: "https://avatars.planningcenteronline.com/uploads/person/124967691-1681689186/avatar.1.jpg",
+		},
+		Events: formattedEvents,
+	}
+	dashboardJSON, _ := json.Marshal(data)
+
+	eventData := struct {
+		Data template.JS
+	}{
+		Data: template.JS(dashboardJSON),
+	}
 
 	t, err := template.ParseFiles("./frontend/views/dashboard.html")
 	if err != nil {
@@ -38,7 +62,7 @@ func (cfg *config) handlerDashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	err = t.Execute(w, formattedEvents)
+	err = t.Execute(w, eventData)
 	if err != nil {
 		http.Error(w, "Error rendering page", http.StatusInternalServerError)
 		log.Println("Template execution error:", err)
@@ -49,7 +73,10 @@ func formatEvents(events []database.Event) []formattedEvent {
 	formattedEvents := []formattedEvent{}
 
 	for _, event := range events {
+		link := fmt.Sprintf("events/%v", event.ID)
+
 		formattedEvents = append(formattedEvents, formattedEvent{
+			Link: link,
 			Name: event.Name,
 			Date: event.Date.Format("January 2, 2006"),
 			ID: event.ID.String(),
