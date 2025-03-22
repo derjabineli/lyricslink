@@ -1,6 +1,17 @@
 document.addEventListener("alpine:init", () => {
+  const urlParams = new URLSearchParams(window.location.search)
+  const status = urlParams.get("status")
+  errorMessage = ""
+  successMessage = ""
+  if (status == "success") {
+    successMessage = urlParams.get("message")
+  } else {
+    errorMessage = urlParams.get("message")
+  }
+
   Alpine.data("userSettings", () => ({
-    errorMessage: "",
+    errorMessage: errorMessage,
+    successMessage: successMessage,
     async syncPCSongs() {
       try {
         let response = await fetch("/api/")
