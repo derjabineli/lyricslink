@@ -11,7 +11,11 @@ WHERE email = $1;
 SELECT * FROM users
 WHERE id = $1;
 
--- name: UpdateUserAvatar :exec
+-- name: UpdatePlanningCenterUser :exec
 UPDATE users 
-SET avatar = $1
-WHERE id = $2;
+SET avatar = $1, pc_id = $2, pc_authorized = TRUE
+WHERE id = $3;
+
+-- name: GetUserByPCID :one
+SELECT * FROM users
+WHERE pc_id = $1;

@@ -65,6 +65,7 @@ type User struct {
 	UpdatedAt      time.Time
 	PcAuthorized   bool
 	Avatar         sql.NullString
+	PcID           sql.NullInt32
 }
 
 type UsersSong struct {

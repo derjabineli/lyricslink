@@ -16,7 +16,7 @@ import (
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (id, first_name, last_name, email, hashed_password, created_at, updated_at, pc_authorized)
 VALUES($1, $2, $3, $4, $5, $6, $7, $8)
-RETURNING id, first_name, last_name, email, hashed_password, created_at, updated_at, pc_authorized, avatar
+RETURNING id, first_name, last_name, email, hashed_password, created_at, updated_at, pc_authorized, avatar, pc_id
 `
 
 type CreateUserParams struct {
@@ -52,12 +52,13 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.UpdatedAt,
 		&i.PcAuthorized,
 		&i.Avatar,
+		&i.PcID,
 	)
 	return i, err
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, first_name, last_name, email, hashed_password, created_at, updated_at, pc_authorized, avatar FROM users 
+SELECT id, first_name, last_name, email, hashed_password, created_at, updated_at, pc_authorized, avatar, pc_id FROM users 
 WHERE email = $1
 `
 
@@ -74,12 +75,13 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.UpdatedAt,
 		&i.PcAuthorized,
 		&i.Avatar,
+		&i.PcID,
 	)
 	return i, err
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT id, first_name, last_name, email, hashed_password, created_at, updated_at, pc_authorized, avatar FROM users
+SELECT id, first_name, last_name, email, hashed_password, created_at, updated_at, pc_authorized, avatar, pc_id FROM users
 WHERE id = $1
 `
 
@@ -96,22 +98,47 @@ func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.UpdatedAt,
 		&i.PcAuthorized,
 		&i.Avatar,
+		&i.PcID,
 	)
 	return i, err
 }
 
-const updateUserAvatar = `-- name: UpdateUserAvatar :exec
-UPDATE users 
-SET avatar = $1
-WHERE id = $2
+const getUserByPCID = `-- name: GetUserByPCID :one
+SELECT id, first_name, last_name, email, hashed_password, created_at, updated_at, pc_authorized, avatar, pc_id FROM users
+WHERE pc_id = $1
 `
 
-type UpdateUserAvatarParams struct {
+func (q *Queries) GetUserByPCID(ctx context.Context, pcID sql.NullInt32) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByPCID, pcID)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.FirstName,
+		&i.LastName,
+		&i.Email,
+		&i.HashedPassword,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.PcAuthorized,
+		&i.Avatar,
+		&i.PcID,
+	)
+	return i, err
+}
+
+const updatePlanningCenterUser = `-- name: UpdatePlanningCenterUser :exec
+UPDATE users 
+SET avatar = $1, pc_id = $2, pc_authorized = TRUE
+WHERE id = $3
+`
+
+type UpdatePlanningCenterUserParams struct {
 	Avatar sql.NullString
+	PcID   sql.NullInt32
 	ID     uuid.UUID
 }
 
-func (q *Queries) UpdateUserAvatar(ctx context.Context, arg UpdateUserAvatarParams) error {
-	_, err := q.db.ExecContext(ctx, updateUserAvatar, arg.Avatar, arg.ID)
+func (q *Queries) UpdatePlanningCenterUser(ctx context.Context, arg UpdatePlanningCenterUserParams) error {
+	_, err := q.db.ExecContext(ctx, updatePlanningCenterUser, arg.Avatar, arg.PcID, arg.ID)
 	return err
 }
