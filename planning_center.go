@@ -5,12 +5,14 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"html/template"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
 
 	"github.com/derjabineli/lyricslink/internal/database"
 	"github.com/google/uuid"
@@ -69,8 +71,9 @@ type PCUserParameters struct {
 }
 
 type PCUserDataParameters struct {
+	ID string 					`json:"id"`
 	Attributes struct {
-		LoginIdentifier string `json:"login_identifier"`
+		LoginIdentifier string 	`json:"login_identifier"`
 		Avatar string 			`json:"avatar"`
 	} `json:"attributes"`
 }
@@ -131,14 +134,21 @@ func (cfg *config) planningcentercallback(w http.ResponseWriter, r *http.Request
 
 	fmt.Printf("Access Token: %v\n", authParams.AccessToken)
 
-	userID, err := cfg.getUserIDWithPCEmail(authParams.AccessToken)
+	userID, err := cfg.getUserIDWithPCDetails(authParams.AccessToken)
 	fmt.Print(userID)
 
-	// go cfg.syncUserSongs(cfg.pcSongRoute, authParams.AccessToken, userID)
-	// http.Redirect(w, r, "/dashboard", http.StatusPermanentRedirect)
+	if err != nil {
+		redirectURL := fmt.Sprintf("/settings?status=error&message=%v", err.Error())
+		http.Redirect(w, r, redirectURL, http.StatusPermanentRedirect)
+	}
+
+	go cfg.syncUserSongs(cfg.pcSongRoute, authParams.AccessToken, userID)
+
+	redirectURL := fmt.Sprintf("/settings?status=success&message=%v", "successfully synced account. your songs may take a few minutes to appear")
+	http.Redirect(w, r, redirectURL, http.StatusPermanentRedirect)
 }
 
-func (cfg *config) getUserIDWithPCEmail(accessToken string) (uuid.UUID, error){
+func (cfg *config) getUserIDWithPCDetails(accessToken string) (uuid.UUID, error){
 	method := "GET"
   
 	client := &http.Client {
@@ -148,37 +158,57 @@ func (cfg *config) getUserIDWithPCEmail(accessToken string) (uuid.UUID, error){
   
 	if err != nil {
 	  fmt.Println(err)
-	  return uuid.Nil, err
+	  return uuid.Nil, errors.New("there was an error retrieving your planning center information. please try again")
 	}
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", accessToken))
 
 	res, err := client.Do(req)
 	if err != nil {
 	  fmt.Println(err.Error())
-	  return uuid.Nil, err
+	  return uuid.Nil, errors.New("there was an error retrieving your planning center information. please try again")
 	}
 	defer res.Body.Close()
   
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 	  fmt.Println(err.Error())
-	  return uuid.Nil, err
+	  return uuid.Nil, errors.New("there was an error retrieving your planning center information. please try again")
 	}
 
 	pcUserDetails := PCUserParameters{}
 	err = json.Unmarshal(body, &pcUserDetails)
 	if err != nil {
-		return uuid.Nil, err
+		return uuid.Nil, errors.New("there was an error retrieving your planning center information. please try again")
 	}
 
-	user, err := cfg.db.GetUserByEmail(context.Background(), pcUserDetails.Data.Attributes.LoginIdentifier)
+	planningCenterID, err := strconv.Atoi(pcUserDetails.Data.ID)
 	if err != nil {
-		return uuid.Nil, err
+		return uuid.Nil, errors.New("there was an error retrieving your planning center information. please try again")
 	}
 
-	if pcUserDetails.Data.Attributes.Avatar != "" {
-		cfg.db.UpdateUserAvatar(context.Background(), database.UpdateUserAvatarParams{Avatar: sql.NullString{String: pcUserDetails.Data.Attributes.Avatar, Valid: true}})
+	user, err := cfg.db.GetUserByPCID(context.Background(), validateSqlNullInt32(planningCenterID))
+	if errors.Is(err, sql.ErrNoRows) {
+		user, err = cfg.db.GetUserByEmail(context.Background(), pcUserDetails.Data.Attributes.LoginIdentifier)
+		if err != nil {
+			return uuid.Nil, errors.New("your account couldn't be synced. please ensure that your planning center account login email matches your lyriclink email")
+		}
 	}
+
+	cfg.db.UpdatePlanningCenterUser(context.Background(), database.UpdatePlanningCenterUserParams{
+		Avatar: validateSqlNullString(pcUserDetails.Data.Attributes.Avatar),
+		PcID: validateSqlNullInt32(planningCenterID),
+		ID: user.ID,
+	})
 
 	return user.ID, nil
+}
+
+func redirect_after_pc_sync(w http.ResponseWriter, r *http.Request) {
+	redirectStatus := r.URL.Query().Get("status")
+	redirectMessage := r.URL.Query().Get("message")
+
+	fmt.Print(redirectMessage, redirectStatus)
+
+	
+	http.Redirect(w, r, "/settings", http.StatusFound)
 }
