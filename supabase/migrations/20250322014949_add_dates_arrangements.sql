@@ -1,0 +1,2 @@
+ALTER TABLE arrangements ADD COLUMN created_at TIMESTAMP NOT NULL;
+ALTER TABLE arrangements ADD COLUMN updated_at TIMESTAMP NOT NULL;
