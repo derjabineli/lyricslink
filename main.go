@@ -65,6 +65,7 @@ func main() {
 	mux.HandleFunc("/pc/callback", cfg.planningcentercallback)
 	mux.HandleFunc("POST /api/register", cfg.register)
 	mux.HandleFunc("POST /api/login", cfg.login)
+	mux.HandleFunc("/pc_redirect", redirect_after_pc_sync)
 
 	server := &http.Server{
 		Handler: mux,
