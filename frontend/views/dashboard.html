@@ -12,7 +12,17 @@
     <link href="/static/output.css" rel="stylesheet" />
     <script src="/static/alpine/addEventModal.js"></script>
   </head>
-  <body class="p-6">
+  <body
+    class="p-6"
+    x-init="
+      data = JSON.parse($el.getAttribute('data-dash'));
+      user = data.user
+      events = data.events
+  
+      console.log(data)
+    "
+    data-dash="{{ .Data }}"
+  >
     <nav
       class="bg-white shadow-md p-5 flex justify-between items-center mb-6 rounded-full"
     >
@@ -25,7 +35,13 @@
           Add
         </a>
         <a href="/settings">
-          <div class="w-10 h-10 bg-gray-300 rounded-full"></div>
+          <div class="w-10 h-10 bg-gray-300 rounded-full">
+            <img
+              class="w-10 h-10 bg-gray-300 rounded-full"
+              :src="user.avatar"
+              alt=""
+            />
+          </div>
         </a>
       </div>
     </nav>
@@ -47,7 +63,6 @@
               x-model="name"
               type="text"
               id="name"
-              name="name"
               class="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500"
               required
             />
@@ -86,17 +101,17 @@
 
     <div class="max-w-4xl mx-auto">
       <div class="space-y-4">
-        {{range .}}
-        <a href="/events/{{.ID}}">
-          <div
-            id="{{.ID}}"
-            class="bg-white p-4 rounded-lg shadow-md cursor-pointer hover:bg-gray-100 mb-4"
-          >
-            <h2 class="text-xl font-semibold">{{.Name}}</h2>
-            <p class="text-gray-600">{{.Date}}</p>
-          </div>
-        </a>
-        {{end}}
+        <template x-for="event in events" :key="event.id">
+          <a :href="event.link">
+            <div
+              :id="event.id"
+              class="bg-white p-4 rounded-lg shadow-md cursor-pointer hover:bg-gray-100 mb-4"
+            >
+              <h2 class="text-xl font-semibold" x-text="event.name"></h2>
+              <p class="text-gray-600" x-text="event.date"></p>
+            </div>
+          </a>
+        </template>
       </div>
     </div>
   </body>
