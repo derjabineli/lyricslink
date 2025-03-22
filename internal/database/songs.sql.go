@@ -51,7 +51,7 @@ func (q *Queries) GetSongIdByPCId(ctx context.Context, pcID sql.NullInt32) (uuid
 const searchSongs = `-- name: SearchSongs :many
 SELECT us.song_id, s.pc_id, s.admin, s.author, s.ccli_number, s.copy_right, s.themes, s.title, s.id, s.created_at, s.updated_at FROM users_songs us
 RIGHT JOIN songs s ON s.id = us.song_id
-WHERE users_songs(user_id) = $1 AND title LIKE $2
+WHERE us.user_id = $1 AND title LIKE $2
 `
 
 type SearchSongsParams struct {
