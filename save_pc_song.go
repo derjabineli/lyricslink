@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -91,12 +90,12 @@ func (cfg *config) savePCSongToDB(song *PlanningCenterSong, accessToken string, 
 
 	songID, err := cfg.db.AddPCSong(context.Background(), database.AddPCSongParams{
 		Title: song.Attributes.Title,
-		Themes: sql.NullString{String: song.Attributes.Themes, Valid: true},
-   		CopyRight: sql.NullString{String: song.Attributes.Copyright, Valid: true},
-    	CcliNumber: sql.NullInt32{Int32: int32(song.Attributes.CCLINumber), Valid: true},
-    	Author: sql.NullString{String: song.Attributes.Author, Valid: true},
-    	Admin: sql.NullString{String: song.Attributes.Admin, Valid: true},
-    	PcID: sql.NullInt32{Int32: int32(pcId), Valid: true},
+		Themes: validateSqlNullString(song.Attributes.Themes),
+   		CopyRight: validateSqlNullString(song.Attributes.Copyright),
+    	CcliNumber: validateSqlNullInt32(song.Attributes.CCLINumber),
+    	Author: validateSqlNullString(song.Attributes.Author),
+    	Admin: validateSqlNullString(song.Attributes.Admin),
+    	PcID: validateSqlNullInt32(pcId),
 	})
 	if err != nil {
 		fmt.Print(err)
