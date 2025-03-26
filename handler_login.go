@@ -37,17 +37,20 @@ func (cfg *config) login(w http.ResponseWriter, r *http.Request) {
 
 	user, err := cfg.db.GetUserByEmail(context.Background(), loginCreds.Email)
 	if err != nil {
-		respondWithError(w, 401, "User does not exist")
+		respondWithError(w, http.StatusUnauthorized, "No user with that email or password found")
+		return
 	}
 
 	err = auth.CheckPasswordHash(loginCreds.Password, user.HashedPassword)
 	if err != nil {
-		respondWithError(w, 401, "Wrong Password")
+		respondWithError(w, http.StatusUnauthorized, "No user with that email or password found")
+		return
 	}
 
 	cookie, err := newJWT(user.ID, cfg.tokenSecret, cfg.tokenDuration)
 	if err != nil {
-		respondWithError(w, 401, err.Error())
+		respondWithError(w, http.StatusInternalServerError, "There was an issue logging you in. Please try again")
+		return
 	}
 
 	http.SetCookie(w, cookie)
