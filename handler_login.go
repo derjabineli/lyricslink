@@ -47,7 +47,7 @@ func (cfg *config) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie, err := newJWT(user.ID, cfg.tokenSecret, cfg.tokenDuration)
+	cookie, err := auth.NewJWTCookie(user.ID, cfg.tokenSecret, cfg.tokenDuration)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "There was an issue logging you in. Please try again")
 		return

@@ -2,6 +2,7 @@ package auth
 
 import (
 	"errors"
+	"net/http"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -66,4 +67,23 @@ func checkTokenExpiration(expiration time.Time) bool{
 	now := time.Now()
 
 	return now.After(expiration)
+}
+
+func NewJWTCookie(id uuid.UUID, tokenSecret string, expiresIn time.Duration) (*http.Cookie, error) {
+	jwtToken, err := MakeJWT(id, tokenSecret, expiresIn)
+	if err != nil {
+		return nil, err
+	}
+
+	cookie := &http.Cookie{
+		Name:     "ll_user",
+		Value:    jwtToken,
+		HttpOnly: true, // Make the cookie inaccessible to JavaScript
+		Secure:   false, // Ensure the cookie is only sent over HTTPS
+		SameSite: http.SameSiteLaxMode, // Protect against CSRF attacks
+		Expires:  time.Now().Add(24 * time.Hour), // Set cookie expiration
+		Path:     "/", // Define cookie scope
+	}
+
+	return cookie, nil
 }
