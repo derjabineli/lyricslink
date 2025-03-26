@@ -1,5 +1,4 @@
 document.addEventListener("alpine:init", () => {
-  console.log("MOUNTED")
   Alpine.data("loginComponent", () => ({
     email: "",
     password: "",
@@ -25,7 +24,6 @@ document.addEventListener("alpine:init", () => {
           window.location.href = "/dashboard"
         }
       } catch (error) {
-        console.error(error)
         this.errorMessage = "An error occurred. Please try again."
       }
     },
