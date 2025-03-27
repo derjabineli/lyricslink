@@ -21,11 +21,21 @@
     "
     data-dash="{{ .Data }}"
   >
+    <nav
+      class="bg-white shadow-md p-5 flex justify-between items-center mb-6 rounded-full"
+    >
+      <a href="/"><h1 class="text-2xl font-bold">LyricLink</h1></a>
+    </nav>
     <div class="flex justify-center">
       <template x-for="song in songs">
-        <div class="flex justify-center flex-col mb-6">
+        <div class="flex justify-center flex-col mb-6 text-center">
           <h1 x-text="song.title" class="text-2xl font-bold m-auto mb-6"></h1>
           <p x-html="song.lyrics" class="text-lg"></p>
+          <div class="text-center text-xs mt-8">
+            <p x-html="song.copy_right" class=""></p>
+            <p x-html="song.author" class=""></p>
+            <p class="">CCLI Song # <span x-html="song.ccli"></span></p>
+          </div>
         </div>
       </template>
     </div>
