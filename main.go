@@ -52,6 +52,7 @@ func main() {
 	mux.Handle("/dashboard", cfg.authMiddleware(cfg.handlerDashboard)) 
 	mux.Handle("/events/{id}", cfg.authMiddleware(cfg.handlerEvents)) 
 	mux.Handle("/settings", cfg.authMiddleware(cfg.handlerSettings)) 
+	mux.HandleFunc("/live/{id}", cfg.handlerLive)
 	
 	// API
 	mux.Handle("POST /api/events", cfg.authMiddleware(cfg.addEvent))
