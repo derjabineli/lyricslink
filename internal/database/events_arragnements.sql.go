@@ -37,6 +37,98 @@ func (q *Queries) AddArrangementToEvent(ctx context.Context, arg AddArrangementT
 	return i, err
 }
 
+const getArrangementsAndSongsWithEventId = `-- name: GetArrangementsAndSongsWithEventId :many
+SELECT 
+    s.pc_id, s.admin, s.author, s.ccli_number, s.copy_right, s.themes, s.title, s.id, s.created_at, s.updated_at,
+    a.name, a.lyrics, a.chord_chart, a.id, a.pc_id, a.chord_chart_key, a.song_id, a.created_at, a.updated_at, a.has_chords, a.has_chord_chart, 
+    CASE 
+        WHEN a.id = ea.arrangement_id THEN TRUE 
+        ELSE FALSE 
+    END AS is_selected
+FROM events_arrangements ea
+JOIN arrangements a 
+    ON a.song_id = (
+        SELECT song_id FROM arrangements WHERE id = ea.arrangement_id
+    )
+JOIN songs s
+    ON s.id = (
+        SELECT id FROM songs WHERE id = a.song_id
+    )
+WHERE ea.event_id = $1
+ORDER BY ea.created_at DESC,  is_selected DESC
+`
+
+type GetArrangementsAndSongsWithEventIdRow struct {
+	PcID          sql.NullInt32
+	Admin         sql.NullString
+	Author        sql.NullString
+	CcliNumber    sql.NullInt32
+	CopyRight     sql.NullString
+	Themes        sql.NullString
+	Title         string
+	ID            uuid.UUID
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	Name          string
+	Lyrics        string
+	ChordChart    sql.NullString
+	ID_2          uuid.UUID
+	PcID_2        sql.NullInt32
+	ChordChartKey sql.NullString
+	SongID        uuid.UUID
+	CreatedAt_2   time.Time
+	UpdatedAt_2   time.Time
+	HasChords     bool
+	HasChordChart bool
+	IsSelected    bool
+}
+
+func (q *Queries) GetArrangementsAndSongsWithEventId(ctx context.Context, eventID uuid.UUID) ([]GetArrangementsAndSongsWithEventIdRow, error) {
+	rows, err := q.db.QueryContext(ctx, getArrangementsAndSongsWithEventId, eventID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetArrangementsAndSongsWithEventIdRow
+	for rows.Next() {
+		var i GetArrangementsAndSongsWithEventIdRow
+		if err := rows.Scan(
+			&i.PcID,
+			&i.Admin,
+			&i.Author,
+			&i.CcliNumber,
+			&i.CopyRight,
+			&i.Themes,
+			&i.Title,
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Name,
+			&i.Lyrics,
+			&i.ChordChart,
+			&i.ID_2,
+			&i.PcID_2,
+			&i.ChordChartKey,
+			&i.SongID,
+			&i.CreatedAt_2,
+			&i.UpdatedAt_2,
+			&i.HasChords,
+			&i.HasChordChart,
+			&i.IsSelected,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getArrangementsWithEventId = `-- name: GetArrangementsWithEventId :many
 SELECT 
     a.name, a.lyrics, a.chord_chart, a.id, a.pc_id, a.chord_chart_key, a.song_id, a.created_at, a.updated_at, a.has_chords, a.has_chord_chart, 
