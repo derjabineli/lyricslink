@@ -16,8 +16,6 @@
     x-init="
       data = JSON.parse($el.getAttribute('data-dash'));
       songs = data.songs
-  
-      console.log(songs[0].lyrics)
     "
     data-dash="{{ .Data }}"
   >
@@ -26,9 +24,9 @@
     >
       <a href="/"><h1 class="text-2xl font-bold">LyricLink</h1></a>
     </nav>
-    <div class="flex justify-center">
+    <div class="flex justify-center flex-col">
       <template x-for="song in songs">
-        <div class="flex justify-center flex-col mb-6 text-center">
+        <div class="flex justify-center flex-col mb-20 text-center">
           <h1 x-text="song.title" class="text-2xl font-bold m-auto mb-6"></h1>
           <p x-html="song.lyrics" class="text-lg"></p>
           <div class="text-center text-xs mt-8">
