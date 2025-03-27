@@ -40,22 +40,14 @@ func (q *Queries) AddArrangementToEvent(ctx context.Context, arg AddArrangementT
 const getArrangementsAndSongsWithEventId = `-- name: GetArrangementsAndSongsWithEventId :many
 SELECT 
     s.pc_id, s.admin, s.author, s.ccli_number, s.copy_right, s.themes, s.title, s.id, s.created_at, s.updated_at,
-    a.name, a.lyrics, a.chord_chart, a.id, a.pc_id, a.chord_chart_key, a.song_id, a.created_at, a.updated_at, a.has_chords, a.has_chord_chart, 
-    CASE 
-        WHEN a.id = ea.arrangement_id THEN TRUE 
-        ELSE FALSE 
-    END AS is_selected
+    a.name, a.lyrics, a.chord_chart, a.id, a.pc_id, a.chord_chart_key, a.song_id, a.created_at, a.updated_at, a.has_chords, a.has_chord_chart
 FROM events_arrangements ea
 JOIN arrangements a 
-    ON a.song_id = (
-        SELECT song_id FROM arrangements WHERE id = ea.arrangement_id
-    )
+    ON a.id =  ea.arrangement_id
 JOIN songs s
-    ON s.id = (
-        SELECT id FROM songs WHERE id = a.song_id
-    )
+    ON s.id = a.song_id
 WHERE ea.event_id = $1
-ORDER BY ea.created_at DESC,  is_selected DESC
+ORDER BY ea.created_at ASC
 `
 
 type GetArrangementsAndSongsWithEventIdRow struct {
@@ -80,7 +72,6 @@ type GetArrangementsAndSongsWithEventIdRow struct {
 	UpdatedAt_2   time.Time
 	HasChords     bool
 	HasChordChart bool
-	IsSelected    bool
 }
 
 func (q *Queries) GetArrangementsAndSongsWithEventId(ctx context.Context, eventID uuid.UUID) ([]GetArrangementsAndSongsWithEventIdRow, error) {
@@ -114,7 +105,6 @@ func (q *Queries) GetArrangementsAndSongsWithEventId(ctx context.Context, eventI
 			&i.UpdatedAt_2,
 			&i.HasChords,
 			&i.HasChordChart,
-			&i.IsSelected,
 		); err != nil {
 			return nil, err
 		}
@@ -142,7 +132,7 @@ JOIN arrangements a
         SELECT song_id FROM arrangements WHERE id = ea.arrangement_id
     )
 WHERE ea.event_id = $1
-ORDER BY ea.created_at DESC,  is_selected DESC
+ORDER BY ea.created_at ASC,  is_selected DESC
 `
 
 type GetArrangementsWithEventIdRow struct {
