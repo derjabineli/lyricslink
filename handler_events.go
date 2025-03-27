@@ -24,6 +24,7 @@ type eventParameters struct {
 	Name string		`json:"name"`
 	Date string		`json:"date"`
 	Songs map[uuid.UUID]songParameters `json:"songs"`
+	Livelink string `json:"live_link"`
 }
 
 type songParameters struct {
@@ -69,7 +70,8 @@ func (cfg *config) handlerEvents(w http.ResponseWriter, r *http.Request) {
 
 	arrangements, _ := cfg.db.GetArrangementsWithEventId(context.Background(), eventID)
 
-	eventParams := eventParameters{ID: eventID, Name: event.Name, Date: formattedDate, Songs: map[uuid.UUID]songParameters{}}
+	livelink := fmt.Sprintf("/live/%v", eventID)
+	eventParams := eventParameters{ID: eventID, Name: event.Name, Date: formattedDate, Livelink: livelink, Songs: map[uuid.UUID]songParameters{}}
 
 	for _, a := range arrangements {
 		song, exists := eventParams.Songs[a.SongID]
