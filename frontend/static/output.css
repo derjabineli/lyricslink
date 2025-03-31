@@ -18,7 +18,6 @@
     --color-stone-800: oklch(0.268 0.007 34.298);
     --color-white: #fff;
     --spacing: 0.25rem;
-    --container-sm: 24rem;
     --container-lg: 32rem;
     --container-4xl: 56rem;
     --text-xs: 0.75rem;
@@ -198,14 +197,32 @@
   }
 }
 @layer utilities {
+  .absolute {
+    position: absolute;
+  }
   .fixed {
     position: fixed;
+  }
+  .relative {
+    position: relative;
   }
   .inset-0 {
     inset: calc(var(--spacing) * 0);
   }
+  .top-0 {
+    top: calc(var(--spacing) * 0);
+  }
+  .top-4 {
+    top: calc(var(--spacing) * 4);
+  }
+  .right-4 {
+    right: calc(var(--spacing) * 4);
+  }
   .z-100 {
     z-index: 100;
+  }
+  .m-0 {
+    margin: calc(var(--spacing) * 0);
   }
   .m-auto {
     margin: auto;
@@ -264,9 +281,6 @@
   .w-80 {
     width: calc(var(--spacing) * 80);
   }
-  .w-auto {
-    width: auto;
-  }
   .w-fit {
     width: fit-content;
   }
@@ -275,9 +289,6 @@
   }
   .w-lg {
     width: var(--container-lg);
-  }
-  .w-sm {
-    width: var(--container-sm);
   }
   .max-w-4xl {
     max-width: var(--container-4xl);

@@ -57,6 +57,7 @@ func main() {
 	// API
 	mux.Handle("POST /api/events", cfg.authMiddleware(cfg.addEvent))
 	mux.Handle("PUT /api/events", cfg.authMiddleware(cfg.updateEventDate))
+	mux.Handle("DELETE /api/events/{id}", cfg.authMiddleware(cfg.deleteEvent))
 	mux.Handle("POST /api/songs", cfg.authMiddleware(cfg.getSongs))
 	mux.Handle("GET /api/songs/{id}", cfg.authMiddleware(cfg.getArrangements))
 	mux.Handle("POST /api/event_arrangements", cfg.authMiddleware(cfg.addArrangementToEvent))

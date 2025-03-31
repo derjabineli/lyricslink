@@ -158,3 +158,26 @@ func (cfg *config) updateEventDate(w http.ResponseWriter, r *http.Request) {
 
 	respondWithJSON(w, http.StatusOK, updatedEvent)
 }
+
+func (cfg *config) deleteEvent(w http.ResponseWriter, r *http.Request) {
+	eventPath := path.Base(r.URL.Path)
+	eventID, err := uuid.Parse(eventPath)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "No event id found")
+		return
+	}
+
+	userID, err := getUserIDFromContext(r)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	err = cfg.db.DeleteEvent(context.Background(), database.DeleteEventParams{ID: eventID, UserID: userID})
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't delete event")
+		return 
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

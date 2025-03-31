@@ -132,7 +132,7 @@ JOIN arrangements a
         SELECT song_id FROM arrangements WHERE id = ea.arrangement_id
     )
 WHERE ea.event_id = $1
-ORDER BY ea.created_at ASC,  is_selected DESC
+ORDER BY ea.created_at ASC
 `
 
 type GetArrangementsWithEventIdRow struct {
