@@ -26,6 +26,7 @@ type config struct {
 
 func main() {
 	godotenv.Load()
+	PORT := os.Getenv("PORT")
 	pcClient := os.Getenv("PC_CLIENTID")
 	pcSecret := os.Getenv("PC_SECRET")
 	pcRedirect := os.Getenv("PC_REDIRECT")
@@ -48,11 +49,10 @@ func main() {
 	mux.Handle("/", cfg.guestOnlyMiddleware(handlerHome))
 	mux.Handle("/login", cfg.guestOnlyMiddleware(cfg.loginStatic))
 	mux.HandleFunc("/static/", staticHandler)
-	mux.HandleFunc("/loginPC", cfg.loginPC)
 	mux.Handle("/dashboard", cfg.authMiddleware(cfg.handlerDashboard)) 
 	mux.Handle("/events/{id}", cfg.authMiddleware(cfg.handlerEvents)) 
 	mux.Handle("/settings", cfg.authMiddleware(cfg.handlerSettings)) 
-	mux.HandleFunc("/live/{id}", cfg.handlerLive)
+	mux.HandleFunc("GET /live/{id}", cfg.handlerLive)
 	
 	// API
 	mux.Handle("POST /api/events", cfg.authMiddleware(cfg.addEvent))
@@ -70,9 +70,9 @@ func main() {
 
 	server := &http.Server{
 		Handler: mux,
-		Addr: ":3005",
+		Addr: ":" + PORT,
 	  }
 	  
-	  fmt.Print("Running on Port 3005\n")
+	  fmt.Printf("Running on Port %v\n", PORT)
 	  log.Fatal(server.ListenAndServe())
 }
