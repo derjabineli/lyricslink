@@ -60,9 +60,9 @@ func main() {
 	mux.Handle("DELETE /api/events/{id}", cfg.authMiddleware(cfg.deleteEvent))
 	mux.Handle("POST /api/songs", cfg.authMiddleware(cfg.getSongs))
 	mux.Handle("GET /api/songs/{id}", cfg.authMiddleware(cfg.getArrangements))
-	mux.Handle("POST /api/event_arrangements", cfg.authMiddleware(cfg.addArrangementToEvent))
-	mux.Handle("PUT /api/event_arrangements", cfg.authMiddleware(cfg.updateEventArrangement))
-	mux.Handle("DELETE /api/event_arrangements/{id}", cfg.authMiddleware(cfg.deleteEventArrangement))
+	mux.Handle("POST /api/events_arrangements", cfg.authMiddleware(cfg.addArrangementToEvent))
+	mux.Handle("PUT /api/events_arrangements", cfg.authMiddleware(cfg.updateEventArrangement))
+	mux.Handle("DELETE /api/events_arrangements/{id}", cfg.authMiddleware(cfg.deleteEventArrangement))
 
 	// AUTH
 	mux.HandleFunc("/pc/callback", cfg.planningcentercallback)

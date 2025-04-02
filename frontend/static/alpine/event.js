@@ -40,7 +40,7 @@ document.addEventListener("alpine:init", () => {
     async deleteEventArrangement(event_arrangement_id) {
       try {
         let response = await fetch(
-          `/api/event_arrangements/${event_arrangement_id}`,
+          `/api/events_arrangements/${event_arrangement_id}`,
           {
             method: "DELETE",
           }

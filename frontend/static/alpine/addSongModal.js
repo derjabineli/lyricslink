@@ -59,7 +59,7 @@ document.addEventListener("alpine:init", () => {
       pathname = window.location.pathname
       event_id = pathname.split("/events/").join("")
       try {
-        let response = await fetch(`/api/event_arrangements`, {
+        let response = await fetch(`/api/events_arrangements`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
