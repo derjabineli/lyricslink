@@ -28,14 +28,15 @@ type eventParameters struct {
 }
 
 type songParameters struct {
-	ID uuid.UUID		`json:"id"`
-	PC_ID int			`json:"pcId"`
-	Admin string		`json:"admin"`		
-	Author string		`json:"author"`
-	CCLI int			`json:"ccli"`
-	Copyright string	`json:"copyright"`
-	Themes string		`json:"themes"`
-	Title string		`json:"title"`
+	ID uuid.UUID						`json:"id"`
+	Event_Arrangement_Id uuid.UUID		`json:"eventArrangementId"`
+	PC_ID int							`json:"pcId"`
+	Admin string						`json:"admin"`		
+	Author string						`json:"author"`
+	CCLI int							`json:"ccli"`
+	Copyright string					`json:"copyright"`
+	Themes string						`json:"themes"`
+	Title string						`json:"title"`
 	Arrangements []arrangementParameters `json:"arrangements"`
 }
 
@@ -75,6 +76,7 @@ func (cfg *config) handlerEvents(w http.ResponseWriter, r *http.Request) {
 
 	for _, a := range arrangements {
 		song, exists := eventParams.Songs[a.SongID]
+		song.Event_Arrangement_Id = a.EventArrangementID
 		if !exists {
 			dbSong, _ := cfg.db.GetSongById(context.Background(), a.SongID)
 
