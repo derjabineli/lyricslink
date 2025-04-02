@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"path"
 
@@ -81,4 +82,29 @@ func (cfg *config) updateEventArrangement(w http.ResponseWriter, r *http.Request
 		respondWithError(w, http.StatusInternalServerError, "Couldn't add arrangement to event")
 		return
 	}
+}
+
+func (cfg *config) deleteEventArrangement(w http.ResponseWriter, r *http.Request) {
+	eventPath := path.Base(r.URL.Path)
+	eventID, err := uuid.Parse(eventPath)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "No event id found")
+		return
+	}
+
+	userID, err := getUserIDFromContext(r)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
+	fmt.Print(userID)
+
+	err = cfg.db.DeleteEventArrangement(context.Background(), eventID)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't delete event")
+		return 
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }

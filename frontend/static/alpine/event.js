@@ -25,15 +25,29 @@ document.addEventListener("alpine:init", () => {
     },
     async changeArrangement(arrangement_id) {},
     async deleteEvent(event_id) {
-      console.log(event_id)
       try {
         let response = await fetch(`/api/events/${event_id}`, {
           method: "DELETE",
         })
 
-        console.log(response)
         if (response.status == 204) {
           window.location.href = "/dashboard"
+        }
+      } catch (error) {
+        console.log(error)
+      }
+    },
+    async deleteEventArrangement(event_arrangement_id) {
+      try {
+        let response = await fetch(
+          `/api/event_arrangements/${event_arrangement_id}`,
+          {
+            method: "DELETE",
+          }
+        )
+
+        if (response.status == 204) {
+          window.location.reload()
         }
       } catch (error) {
         console.log(error)
