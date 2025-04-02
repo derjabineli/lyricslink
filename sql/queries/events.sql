@@ -16,3 +16,7 @@ UPDATE events
 SET date = $1
 WHERE id = $2
 RETURNING *;
+
+-- name: DeleteEvent :exec
+DElETE FROM events
+WHERE id = $1 AND user_id = $2;

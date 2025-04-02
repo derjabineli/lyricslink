@@ -37,6 +37,15 @@ func (q *Queries) AddArrangementToEvent(ctx context.Context, arg AddArrangementT
 	return i, err
 }
 
+const deleteEventArrangement = `-- name: DeleteEventArrangement :exec
+DELETE FROM events_arrangements WHERE id = $1
+`
+
+func (q *Queries) DeleteEventArrangement(ctx context.Context, id uuid.UUID) error {
+	_, err := q.db.ExecContext(ctx, deleteEventArrangement, id)
+	return err
+}
+
 const getArrangementsAndSongsWithEventId = `-- name: GetArrangementsAndSongsWithEventId :many
 SELECT 
     s.pc_id, s.admin, s.author, s.ccli_number, s.copy_right, s.themes, s.title, s.id, s.created_at, s.updated_at,
@@ -121,7 +130,8 @@ func (q *Queries) GetArrangementsAndSongsWithEventId(ctx context.Context, eventI
 
 const getArrangementsWithEventId = `-- name: GetArrangementsWithEventId :many
 SELECT 
-    a.name, a.lyrics, a.chord_chart, a.id, a.pc_id, a.chord_chart_key, a.song_id, a.created_at, a.updated_at, a.has_chords, a.has_chord_chart, 
+    a.name, a.lyrics, a.chord_chart, a.id, a.pc_id, a.chord_chart_key, a.song_id, a.created_at, a.updated_at, a.has_chords, a.has_chord_chart,
+    ea.id AS event_arrangement_id, 
     CASE 
         WHEN a.id = ea.arrangement_id THEN TRUE 
         ELSE FALSE 
@@ -136,18 +146,19 @@ ORDER BY ea.created_at ASC
 `
 
 type GetArrangementsWithEventIdRow struct {
-	Name          string
-	Lyrics        string
-	ChordChart    sql.NullString
-	ID            uuid.UUID
-	PcID          sql.NullInt32
-	ChordChartKey sql.NullString
-	SongID        uuid.UUID
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
-	HasChords     bool
-	HasChordChart bool
-	IsSelected    bool
+	Name               string
+	Lyrics             string
+	ChordChart         sql.NullString
+	ID                 uuid.UUID
+	PcID               sql.NullInt32
+	ChordChartKey      sql.NullString
+	SongID             uuid.UUID
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
+	HasChords          bool
+	HasChordChart      bool
+	EventArrangementID uuid.UUID
+	IsSelected         bool
 }
 
 func (q *Queries) GetArrangementsWithEventId(ctx context.Context, eventID uuid.UUID) ([]GetArrangementsWithEventIdRow, error) {
@@ -171,6 +182,7 @@ func (q *Queries) GetArrangementsWithEventId(ctx context.Context, eventID uuid.U
 			&i.UpdatedAt,
 			&i.HasChords,
 			&i.HasChordChart,
+			&i.EventArrangementID,
 			&i.IsSelected,
 		); err != nil {
 			return nil, err
