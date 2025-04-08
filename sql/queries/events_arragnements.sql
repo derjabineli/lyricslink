@@ -33,3 +33,9 @@ ORDER BY ea.created_at ASC;
 
 -- name: DeleteEventArrangement :exec
 DELETE FROM events_arrangements WHERE id = $1;
+
+-- name: UpdateArrangement :one
+UPDATE events_arrangements
+SET arrangement_id = $1
+WHERE id = $2
+RETURNING *;

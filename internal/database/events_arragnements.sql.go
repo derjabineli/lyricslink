@@ -197,3 +197,28 @@ func (q *Queries) GetArrangementsWithEventId(ctx context.Context, eventID uuid.U
 	}
 	return items, nil
 }
+
+const updateArrangement = `-- name: UpdateArrangement :one
+UPDATE events_arrangements
+SET arrangement_id = $1
+WHERE id = $2
+RETURNING event_id, id, created_at, updated_at, arrangement_id
+`
+
+type UpdateArrangementParams struct {
+	ArrangementID uuid.UUID
+	ID            uuid.UUID
+}
+
+func (q *Queries) UpdateArrangement(ctx context.Context, arg UpdateArrangementParams) (EventsArrangement, error) {
+	row := q.db.QueryRowContext(ctx, updateArrangement, arg.ArrangementID, arg.ID)
+	var i EventsArrangement
+	err := row.Scan(
+		&i.EventID,
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ArrangementID,
+	)
+	return i, err
+}
