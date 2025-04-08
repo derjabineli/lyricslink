@@ -67,6 +67,10 @@ document.addEventListener("alpine:init", () => {
             arrangement_id: arrangement_id,
           }),
         })
+
+        if (response.ok) {
+          window.location.reload()
+        }
       } catch (error) {}
     },
   }))
