@@ -90,13 +90,12 @@
         >
           <div class="flex justify-between">
             <h2 class="font-bold text-xl" x-text="song.title"></h2>
-            <h2 x-text="song.eventArrangementId"></h2>
             <h2>↓</h2>
           </div>
           <hr class="font-bold mb-0" />
 
           <div
-            class="arrangements border-2 flex justify-center space-x-8 p-6 hidden z-100 relative"
+            class="arrangements border-2 flex flex-col-reverse md:flex-row justify-center space-x-8 p-6 hidden z-100 relative"
           >
             <div
               class="rounded-xl border border-transparent bg-gray-900 text-md tracking-wide text-white transition-colors hover:bg-gray-700 cursor-pointer w-fit absolute px-4 py-2 m-0 top-4 right-4"
@@ -114,7 +113,9 @@
             </div>
             <template x-for="arrangement in song.arrangements">
               <template x-if="arrangement.isSelected">
-                <div class="border-2 h-100 w-80 text-center overflow-scroll">
+                <div
+                  class="border-2 h-100 text-center overflow-scroll m-0 md:m-4 md:w-80"
+                >
                   <p x-html="arrangement.lyrics"></p>
                 </div>
               </template>
