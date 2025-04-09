@@ -200,7 +200,7 @@ func (q *Queries) GetArrangementsWithEventId(ctx context.Context, eventID uuid.U
 
 const updateArrangement = `-- name: UpdateArrangement :one
 UPDATE events_arrangements
-SET arrangement_id = $1
+SET arrangement_id = $1, updated_at = NOW()
 WHERE id = $2
 RETURNING event_id, id, created_at, updated_at, arrangement_id
 `

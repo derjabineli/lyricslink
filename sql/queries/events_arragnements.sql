@@ -36,6 +36,6 @@ DELETE FROM events_arrangements WHERE id = $1;
 
 -- name: UpdateArrangement :one
 UPDATE events_arrangements
-SET arrangement_id = $1
+SET arrangement_id = $1, updated_at = NOW()
 WHERE id = $2
 RETURNING *;
