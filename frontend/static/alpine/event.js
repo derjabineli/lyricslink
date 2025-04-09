@@ -23,7 +23,32 @@ document.addEventListener("alpine:init", () => {
         console.log(error)
       }
     },
-    async changeArrangement(arrangement_id) {},
+    async changeArrangement(
+      event_arrangement_id,
+      new_arrangement_id,
+      event_id
+    ) {
+      try {
+        let response = await fetch(
+          `/api/events_arrangements/${event_arrangement_id}`,
+          {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              arrangement_id: new_arrangement_id,
+              event_id: event_id,
+            }),
+          }
+        )
+
+        console.log(response)
+        if (response.ok) {
+          window.location.reload()
+        }
+      } catch (error) {
+        console.log(error)
+      }
+    },
     async deleteEvent(event_id) {
       try {
         let response = await fetch(`/api/events/${event_id}`, {

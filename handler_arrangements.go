@@ -69,19 +69,27 @@ func (cfg *config) addArrangementToEvent(w http.ResponseWriter, r *http.Request)
 }
 
 func (cfg *config) updateEventArrangement(w http.ResponseWriter, r *http.Request) {
+	eventPath := path.Base(r.URL.Path)
+	eventArrangementID, err := uuid.Parse(eventPath)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "No event id found")
+		return
+	}
 	decoder := json.NewDecoder(r.Body)
 	defer r.Body.Close()
 	eventArrangement := eventArrangementBody{}
 	decoder.Decode(&eventArrangement)
-
-	_, err := cfg.db.AddArrangementToEvent(context.Background(), database.AddArrangementToEventParams{
-		EventID: eventArrangement.EventID,
-		ArrangementID: eventArrangement.ArrangementID,
+	
+	_, err = cfg.db.UpdateArrangement(context.Background(), database.UpdateArrangementParams{
+		ID: eventArrangementID, ArrangementID: eventArrangement.ArrangementID,
 	})
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "Couldn't add arrangement to event")
+		fmt.Println(err)
+		respondWithError(w, http.StatusInternalServerError, "couldn't update arrangement")
 		return
 	}
+
+	w.WriteHeader(200)
 }
 
 func (cfg *config) deleteEventArrangement(w http.ResponseWriter, r *http.Request) {

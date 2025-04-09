@@ -25,7 +25,6 @@
     live_link = event.live_link
     songs = event.songs;
     $store.event.event_id = id;
-    console.log(event);
   "
     data-event="{{ .Event }}"
   >
@@ -124,7 +123,7 @@
             <div>
               <h2 class="font-bold text-3xl">Arrangements</h2>
               <select
-                @change="changeArrangement($el.selectedOptions[0].value, $store.event.event_id)"
+                @change="changeArrangement(song.eventArrangementId, $event.target.value, id)"
               >
                 <template
                   x-for="arrangement in song.arrangements"
@@ -133,6 +132,7 @@
                   <option
                     :value="arrangement.id"
                     x-text="arrangement.name"
+                    :selected="arrangement.isSelected"
                   ></option>
                 </template>
               </select>
@@ -188,7 +188,7 @@
               class="mt-2 bg-white shadow-md max-h-40 overflow-y-auto"
               x-show="songs.length > 0"
             >
-              <template x-for="song in songs" :key="song.id">
+              <template x-for="song in songs">
                 <div
                   class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
                   @click="getArrangements(song.id)"
