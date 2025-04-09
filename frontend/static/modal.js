@@ -12,10 +12,3 @@ openModalBtn.addEventListener("click", () => {
 closeModalBtn.addEventListener("click", () => {
   modal.classList.add("hidden")
 })
-
-// Handle form submission
-entryForm.addEventListener("submit", (e) => {
-  e.preventDefault()
-  alert("Form submitted!") // Replace with actual logic
-  modal.classList.add("hidden")
-})
