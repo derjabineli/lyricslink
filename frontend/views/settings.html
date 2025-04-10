@@ -57,13 +57,13 @@
             have admin rights to your Church's Services Account
           </p>
           <button
-            @click="openLoginPopup()"
+            @click="openLoginPopup('{{.RedirectURL}}')"
             type="submit"
             class="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-700 transition cursor-pointer"
           >
             Sync
           </button>
-          <p x-text="successMessage" class="text-green-600">HELLO</p>
+          <p x-text="successMessage" class="text-green-600"></p>
           <p x-text="errorMessage" class="text-red-600"></p>
         </div>
       </div>

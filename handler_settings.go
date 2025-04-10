@@ -15,8 +15,9 @@ type userJSON struct {
     FirstName      string		`json:"firstName"`
     LastName       string		`json:"lastName"`
     Email          string		`json:"email"`
-    CreatedAt      string	`json:"createdAt"`
+    CreatedAt      string		`json:"createdAt"`
     PcAuthorized   bool			`json:"pcAuthorized"`
+	RedirectURL    string		`json:"redirectURL"`
 }
 
 func (cfg *config) handlerSettings(w http.ResponseWriter, r *http.Request) {
@@ -40,6 +41,7 @@ func (cfg *config) handlerSettings(w http.ResponseWriter, r *http.Request) {
 		Email: user.Email,
 		CreatedAt: formattedDate,
 		PcAuthorized: user.PcAuthorized,
+		RedirectURL: cfg.pcRedirect,
 	}
 
 	t, err := template.ParseFiles("./frontend/views/settings.html")

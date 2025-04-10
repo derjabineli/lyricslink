@@ -19,9 +19,9 @@ document.addEventListener("alpine:init", () => {
         console.log
       }
     },
-    async openLoginPopup() {
+    async openLoginPopup(redirect_uri) {
       const loginWindow = window.open(
-        "https://api.planningcenteronline.com/oauth/authorize?client_id=a880698546e79438bc6ebd4e0df5f4cf94a0b434b8cf7378d526984230183bf9&redirect_uri=http://localhost:3005/pc/callback&response_type=code&scope=services people",
+        `https://api.planningcenteronline.com/oauth/authorize?client_id=a880698546e79438bc6ebd4e0df5f4cf94a0b434b8cf7378d526984230183bf9&redirect_uri=${redirect_uri}&response_type=code&scope=services people`,
         "oauth_popup",
         "width=600,height=400"
       )
