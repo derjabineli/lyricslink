@@ -42,9 +42,7 @@ func (cfg *config) handlerDashboard(w http.ResponseWriter, r *http.Request) {
 
 	formattedEvents := formatEvents(events)
 	data := dashboardParameters{
-		User: userParameters{
-			Avatar: "https://avatars.planningcenteronline.com/uploads/person/124967691-1681689186/avatar.1.jpg",
-		},
+		User: userParameters{},
 		Events: formattedEvents,
 	}
 	dashboardJSON, _ := json.Marshal(data)
