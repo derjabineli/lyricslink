@@ -112,14 +112,12 @@ func (cfg *config) planningcentercallback(w http.ResponseWriter, r *http.Request
 	authParams := PCauthorizationParameters{}
 	decoder.Decode(&authParams)
 
-	fmt.Printf("Access Token: %v\n", authParams.AccessToken)
-
 	userID, err := cfg.getUserIDWithPCDetails(authParams.AccessToken)
-	fmt.Print(userID)
 
 	if err != nil {
 		redirectURL := fmt.Sprintf("/settings?status=error&message=%v", err.Error())
 		http.Redirect(w, r, redirectURL, http.StatusPermanentRedirect)
+		return
 	}
 
 	go cfg.syncUserSongs(cfg.pcSongRoute, authParams.AccessToken, userID)
