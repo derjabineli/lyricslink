@@ -31,11 +31,13 @@
       <div class="flex items-center space-x-4">
         <a href="/settings">
           <div class="w-10 h-10 bg-gray-300 rounded-full">
-            <img
-              class="w-10 h-10 bg-gray-300 rounded-full"
-              :src="user.avatar"
-              alt=""
-            />
+            <template x-if="user.avatar">
+              <img
+                class="w-10 h-10 bg-gray-300 rounded-full"
+                :src="user.avatar"
+                alt=""
+              />
+            </template>
           </div>
         </a>
       </div>
