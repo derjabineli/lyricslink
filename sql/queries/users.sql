@@ -1,6 +1,11 @@
 -- name: CreateUser :one
-INSERT INTO users (id, first_name, last_name, email, hashed_password, created_at, updated_at, pc_authorized)
-VALUES($1, $2, $3, $4, $5, $6, $7, $8)
+INSERT INTO users (id, first_name, last_name, email, created_at, updated_at, avatar, pc_id, administrator)
+VALUES(gen_random_uuid(), $1, $2, $3, NOW(), NOW(), $4, $5, $6)
+ON CONFLICT (pc_id) DO UPDATE 
+    SET email = EXCLUDED.email,
+        updated_at = NOW(),
+        avatar = EXCLUDED.avatar,
+        administrator = EXCLUDED.administrator
 RETURNING *;
 
 -- name: GetUserByEmail :one
@@ -13,7 +18,7 @@ WHERE id = $1;
 
 -- name: UpdatePlanningCenterUser :exec
 UPDATE users 
-SET avatar = $1, pc_id = $2, pc_authorized = TRUE
+SET avatar = $1, pc_id = $2
 WHERE id = $3;
 
 -- name: GetUserByPCID :one

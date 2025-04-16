@@ -42,6 +42,31 @@ type EventsArrangement struct {
 	ArrangementID uuid.UUID
 }
 
+type OrganizationsUser struct {
+	ID             uuid.UUID
+	OrganizationID uuid.UUID
+	UserID         uuid.UUID
+}
+
+type PlanningCenterOrganization struct {
+	ID   uuid.UUID
+	Name string
+	PcID string
+}
+
+type PlanningCenterToken struct {
+	ID           uuid.UUID
+	UserID       uuid.UUID
+	AccessToken  string
+	TokenType    string
+	ExpiresIn    int32
+	RefreshToken string
+	Scope        string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	Revoked      bool
+}
+
 type Song struct {
 	PcID       sql.NullInt32
 	Admin      sql.NullString
@@ -56,16 +81,15 @@ type Song struct {
 }
 
 type User struct {
-	ID             uuid.UUID
-	FirstName      string
-	LastName       string
-	Email          string
-	HashedPassword string
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
-	PcAuthorized   bool
-	Avatar         sql.NullString
-	PcID           sql.NullInt32
+	ID            uuid.UUID
+	FirstName     string
+	LastName      string
+	Email         string
+	CreatedAt     time.Time
+	UpdatedAt     time.Time
+	Administrator bool
+	Avatar        string
+	PcID          string
 }
 
 type UsersSong struct {

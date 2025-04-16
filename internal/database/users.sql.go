@@ -7,39 +7,38 @@ package database
 
 import (
 	"context"
-	"database/sql"
-	"time"
 
 	"github.com/google/uuid"
 )
 
 const createUser = `-- name: CreateUser :one
-INSERT INTO users (id, first_name, last_name, email, hashed_password, created_at, updated_at, pc_authorized)
-VALUES($1, $2, $3, $4, $5, $6, $7, $8)
-RETURNING id, first_name, last_name, email, hashed_password, created_at, updated_at, pc_authorized, avatar, pc_id
+INSERT INTO users (id, first_name, last_name, email, created_at, updated_at, avatar, pc_id, administrator)
+VALUES(gen_random_uuid(), $1, $2, $3, NOW(), NOW(), $4, $5, $6)
+ON CONFLICT (pc_id) DO UPDATE 
+    SET email = EXCLUDED.email,
+        updated_at = NOW(),
+        avatar = EXCLUDED.avatar,
+        administrator = EXCLUDED.administrator
+RETURNING id, first_name, last_name, email, created_at, updated_at, administrator, avatar, pc_id
 `
 
 type CreateUserParams struct {
-	ID             uuid.UUID
-	FirstName      string
-	LastName       string
-	Email          string
-	HashedPassword string
-	CreatedAt      time.Time
-	UpdatedAt      time.Time
-	PcAuthorized   bool
+	FirstName     string
+	LastName      string
+	Email         string
+	Avatar        string
+	PcID          string
+	Administrator bool
 }
 
 func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, error) {
 	row := q.db.QueryRowContext(ctx, createUser,
-		arg.ID,
 		arg.FirstName,
 		arg.LastName,
 		arg.Email,
-		arg.HashedPassword,
-		arg.CreatedAt,
-		arg.UpdatedAt,
-		arg.PcAuthorized,
+		arg.Avatar,
+		arg.PcID,
+		arg.Administrator,
 	)
 	var i User
 	err := row.Scan(
@@ -47,10 +46,9 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 		&i.FirstName,
 		&i.LastName,
 		&i.Email,
-		&i.HashedPassword,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.PcAuthorized,
+		&i.Administrator,
 		&i.Avatar,
 		&i.PcID,
 	)
@@ -58,7 +56,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 }
 
 const getUserByEmail = `-- name: GetUserByEmail :one
-SELECT id, first_name, last_name, email, hashed_password, created_at, updated_at, pc_authorized, avatar, pc_id FROM users 
+SELECT id, first_name, last_name, email, created_at, updated_at, administrator, avatar, pc_id FROM users 
 WHERE email = $1
 `
 
@@ -70,10 +68,9 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 		&i.FirstName,
 		&i.LastName,
 		&i.Email,
-		&i.HashedPassword,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.PcAuthorized,
+		&i.Administrator,
 		&i.Avatar,
 		&i.PcID,
 	)
@@ -81,7 +78,7 @@ func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error
 }
 
 const getUserById = `-- name: GetUserById :one
-SELECT id, first_name, last_name, email, hashed_password, created_at, updated_at, pc_authorized, avatar, pc_id FROM users
+SELECT id, first_name, last_name, email, created_at, updated_at, administrator, avatar, pc_id FROM users
 WHERE id = $1
 `
 
@@ -93,10 +90,9 @@ func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
 		&i.FirstName,
 		&i.LastName,
 		&i.Email,
-		&i.HashedPassword,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.PcAuthorized,
+		&i.Administrator,
 		&i.Avatar,
 		&i.PcID,
 	)
@@ -104,11 +100,11 @@ func (q *Queries) GetUserById(ctx context.Context, id uuid.UUID) (User, error) {
 }
 
 const getUserByPCID = `-- name: GetUserByPCID :one
-SELECT id, first_name, last_name, email, hashed_password, created_at, updated_at, pc_authorized, avatar, pc_id FROM users
+SELECT id, first_name, last_name, email, created_at, updated_at, administrator, avatar, pc_id FROM users
 WHERE pc_id = $1
 `
 
-func (q *Queries) GetUserByPCID(ctx context.Context, pcID sql.NullInt32) (User, error) {
+func (q *Queries) GetUserByPCID(ctx context.Context, pcID string) (User, error) {
 	row := q.db.QueryRowContext(ctx, getUserByPCID, pcID)
 	var i User
 	err := row.Scan(
@@ -116,10 +112,9 @@ func (q *Queries) GetUserByPCID(ctx context.Context, pcID sql.NullInt32) (User, 
 		&i.FirstName,
 		&i.LastName,
 		&i.Email,
-		&i.HashedPassword,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.PcAuthorized,
+		&i.Administrator,
 		&i.Avatar,
 		&i.PcID,
 	)
@@ -128,13 +123,13 @@ func (q *Queries) GetUserByPCID(ctx context.Context, pcID sql.NullInt32) (User, 
 
 const updatePlanningCenterUser = `-- name: UpdatePlanningCenterUser :exec
 UPDATE users 
-SET avatar = $1, pc_id = $2, pc_authorized = TRUE
+SET avatar = $1, pc_id = $2
 WHERE id = $3
 `
 
 type UpdatePlanningCenterUserParams struct {
-	Avatar sql.NullString
-	PcID   sql.NullInt32
+	Avatar string
+	PcID   string
 	ID     uuid.UUID
 }
 
