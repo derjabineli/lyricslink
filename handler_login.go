@@ -97,18 +97,20 @@ type PCOrganizationParameters struct {
 }
 
 func (cfg *config) loginStatic(w http.ResponseWriter, r *http.Request) {
-		t, err := template.ParseFiles("./frontend/views/login.html")
-		if err != nil {
-			http.Error(w, "Error loading login page", http.StatusInternalServerError)
-			log.Println("Template parsing error:", err)
-			return
-		}
-	
-		err = t.Execute(w, nil)
-		if err != nil {
-			http.Error(w, "Error rendering login page", http.StatusInternalServerError)
-			log.Println("Template execution error:", err)
-		}
+	loginLink := fmt.Sprintf("https://api.planningcenteronline.com/oauth/authorize?client_id=%v&redirect_uri=%v&response_type=code&scope=services people", cfg.pcClient, cfg.pcRedirect)
+
+	t, err := template.ParseFiles("./frontend/views/login.html")
+	if err != nil {
+		http.Error(w, "Error loading login page", http.StatusInternalServerError)
+		log.Println("Template parsing error:", err)
+		return
+	}
+
+	err = t.Execute(w, loginLink)
+	if err != nil {
+		http.Error(w, "Error rendering login page", http.StatusInternalServerError)
+		log.Println("Template execution error:", err)
+	}
 }
 
 func (cfg *config) loginWithPC(w http.ResponseWriter, r *http.Request) {
@@ -170,6 +172,20 @@ func (cfg *config) loginWithPC(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	dbToken, err := cfg.db.AddAccessToken(context.Background(), database.AddAccessTokenParams{
+		UserID: user.ID, 
+		AccessToken: authParams.AccessToken, 
+		TokenType: authParams.TokenType, 
+		ExpiresIn: int32(authParams.ExpiresIn), 
+		RefreshToken: authParams.RefreshToken, 
+		Scope: authParams.Scope})
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
+	fmt.Println(dbToken)
+
 	cookie, err := auth.NewJWTCookie(user.ID, cfg.tokenSecret, cfg.tokenDuration)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "There was an issue logging you in. Please try again")
@@ -178,7 +194,7 @@ func (cfg *config) loginWithPC(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, cookie)
 
-	http.Redirect(w, r, "/dashboard", 200)
+	http.Redirect(w, r, "/dashboard", http.StatusPermanentRedirect)
 }
 
 func getPCToken(requestBody []byte) (PCauthorizationParameters, error) {
