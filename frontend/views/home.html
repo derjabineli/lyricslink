@@ -77,46 +77,15 @@
 
         <div class="space-y-6 pt-12 text-xl">
           <p>
-            Sign up to start sharing lyrics with ease. Register with your
-            details below.
+            Sign up to start sharing lyrics with ease. Log in with Planning Center below.
           </p>
-          <form @submit.prevent="register" class="space-y-4 max-w-full mx-auto">
-            <input
-              autocomplete="given-name"
-              type="text"
-              placeholder="First Name"
-              x-model="firstName"
-              class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900"
-            />
-            <input
-              autocomplete="family-name"
-              type="text"
-              placeholder="Last Name"
-              x-model="lastName"
-              class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900"
-            />
-            <input
-              autocomplete="email"
-              type="email"
-              placeholder="Email"
-              x-model="email"
-              class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900"
-            />
-            <input
-              autocomplete="new-password"
-              type="password"
-              placeholder="Password"
-              x-model="password"
-              class="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-900"
-            />
-            <p x-text="errorMessage" class="text-red-600"></p>
+          <a href="{{.}}">
             <button
-              type="submit"
               class="w-full flex items-center justify-center rounded-xl border border-transparent bg-gray-900 px-8 py-3 text-lg tracking-wide text-white transition-colors hover:bg-gray-700"
             >
               Register →
             </button>
-          </form>
+          </a>
         </div>
       </div>
     </main>
