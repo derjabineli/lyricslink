@@ -9,3 +9,7 @@ ON CONFLICT (user_id) DO UPDATE
         scope = EXCLUDED.scope,
         updated_at = NOW()
 RETURNING *;
+
+-- name: GetTokenByUserID :one
+SELECT * FROM planning_center_tokens
+WHERE user_id = $1;

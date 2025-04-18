@@ -57,3 +57,26 @@ func (q *Queries) AddAccessToken(ctx context.Context, arg AddAccessTokenParams) 
 	)
 	return i, err
 }
+
+const getTokenByUserID = `-- name: GetTokenByUserID :one
+SELECT id, user_id, access_token, token_type, expires_in, refresh_token, scope, created_at, updated_at, revoked FROM planning_center_tokens
+WHERE user_id = $1
+`
+
+func (q *Queries) GetTokenByUserID(ctx context.Context, userID uuid.UUID) (PlanningCenterToken, error) {
+	row := q.db.QueryRowContext(ctx, getTokenByUserID, userID)
+	var i PlanningCenterToken
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.AccessToken,
+		&i.TokenType,
+		&i.ExpiresIn,
+		&i.RefreshToken,
+		&i.Scope,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Revoked,
+	)
+	return i, err
+}
