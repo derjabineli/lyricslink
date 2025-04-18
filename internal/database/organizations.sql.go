@@ -59,6 +59,18 @@ func (q *Queries) GetOrganizationByPCId(ctx context.Context, pcID string) (Plann
 	return i, err
 }
 
+const getOrganizationIDByUserID = `-- name: GetOrganizationIDByUserID :one
+SELECT organization_id FROM organizations_users
+WHERE user_id = $1
+`
+
+func (q *Queries) GetOrganizationIDByUserID(ctx context.Context, userID uuid.UUID) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, getOrganizationIDByUserID, userID)
+	var organization_id uuid.UUID
+	err := row.Scan(&organization_id)
+	return organization_id, err
+}
+
 const getUserOrgRelation = `-- name: GetUserOrgRelation :one
 SELECT id, organization_id, user_id FROM organizations_users
 WHERE user_id = $1

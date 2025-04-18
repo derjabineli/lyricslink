@@ -17,3 +17,7 @@ WHERE user_id = $1;
 INSERT INTO organizations_users (id, user_id, organization_id)
 VALUES (gen_random_uuid(), $1, $2)
 ON CONFLICT ON CONSTRAINT unique_pc_user_pair DO NOTHING;
+
+-- name: GetOrganizationIDByUserID :one
+SELECT organization_id FROM organizations_users
+WHERE user_id = $1;
