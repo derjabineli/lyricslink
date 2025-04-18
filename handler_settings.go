@@ -11,13 +11,14 @@ import (
 )
 
 type userJSON struct {
-	ID             uuid.UUID	`json:"id"`
-    FirstName      string		`json:"firstName"`
-    LastName       string		`json:"lastName"`
-    Email          string		`json:"email"`
-    CreatedAt      string		`json:"createdAt"`
-    PcAuthorized   bool			`json:"pcAuthorized"`
-	RedirectURL    string		`json:"redirectURL"`
+	ID             	uuid.UUID	`json:"id"`
+    FirstName      	string		`json:"firstName"`
+    LastName       	string		`json:"lastName"`
+    Email          	string		`json:"email"`
+    CreatedAt      	string		`json:"createdAt"`
+    Administrator  	bool		`json:"administrator"`
+	RedirectURL    	string		`json:"redirectURL"`
+	Avatar 			string		`json:"avatar"`
 }
 
 func (cfg *config) handlerSettings(w http.ResponseWriter, r *http.Request) {
@@ -40,8 +41,9 @@ func (cfg *config) handlerSettings(w http.ResponseWriter, r *http.Request) {
 		LastName: user.LastName,
 		Email: user.Email,
 		CreatedAt: formattedDate,
-		PcAuthorized: user.PcAuthorized,
+		Administrator: user.Administrator,
 		RedirectURL: cfg.pcRedirect,
+		Avatar: user.Avatar,
 	}
 
 	t, err := template.ParseFiles("./frontend/views/settings.html")

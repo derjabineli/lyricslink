@@ -34,6 +34,12 @@ func (cfg *config) handlerDashboard(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	user, err := cfg.db.GetUserById(context.Background(), userID)
+	if err != nil {
+		fmt.Printf("Error: %v\n", err)
+		return
+	}
+
 	events, err := cfg.db.GetEventsByUserId(context.Background(), userID)
 	if err != nil {
 		fmt.Print("Couldn't get events")
@@ -42,7 +48,9 @@ func (cfg *config) handlerDashboard(w http.ResponseWriter, r *http.Request) {
 
 	formattedEvents := formatEvents(events)
 	data := dashboardParameters{
-		User: userParameters{},
+		User: userParameters{
+			Avatar: user.Avatar,
+		},
 		Events: formattedEvents,
 	}
 	dashboardJSON, _ := json.Marshal(data)
