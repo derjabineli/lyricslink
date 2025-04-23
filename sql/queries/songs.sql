@@ -3,9 +3,9 @@ SELECT * FROM songs
 WHERE id = $1;
 
 -- name: SearchSongs :many
-SELECT us.song_id, s.* FROM users_songs us
-RIGHT JOIN songs s ON s.id = us.song_id
-WHERE us.user_id = $1 AND title LIKE $2;
+SELECT os.song_id, s.* FROM organizations_songs os
+RIGHT JOIN songs s ON s.id = os.song_id
+WHERE os.organization_id = $1 AND title LIKE $2;
 
 -- name: GetSongIdByPCId :one
 SELECT id FROM songs
