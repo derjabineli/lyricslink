@@ -10,6 +10,7 @@ document.addEventListener("alpine:init", () => {
   }
 
   Alpine.data("userSettings", () => ({
+    isSyncing: false,
     errorMessage: errorMessage,
     successMessage: successMessage,
     async syncPCSongs() {
@@ -38,6 +39,18 @@ document.addEventListener("alpine:init", () => {
           // Make a request to check session or token
         }
       }, 1000)
+    },
+    async syncPCSongs() {
+      this.isSyncing = true
+      try {
+        let response = await fetch("/api/songs/sync")
+        let data = await response.json()
+        console.log(data)
+        this.isSyncing = false
+      } catch (error) {
+        this.isSyncing = false
+        console.log(error)
+      }
     },
   }))
 })
