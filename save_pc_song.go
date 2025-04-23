@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -46,72 +46,66 @@ type PlanningCenterSongDetails struct {
 
 
 
-func (cfg *config) syncUserSongs(url, accessToken string, userID uuid.UUID) {
-	method := "GET"
-  
+func (cfg *config) fetchandSyncSongs(url, accessToken string, org_id uuid.UUID) error {
 	client := &http.Client {
 	}
-	req, err := http.NewRequest(method, url, nil)
+	req, err := http.NewRequest(http.MethodGet, url, nil)
   
 	if err != nil {
-	  fmt.Println(err)
-	  return
+	  return errors.New("internal server error")
 	}
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %v", accessToken))
   
 	res, err := client.Do(req)
 	if err != nil {
-	  fmt.Println(err.Error())
-	  return
+	  return errors.New("internal server error")
 	}
 	defer res.Body.Close()
+
+	if res.StatusCode == http.StatusUnauthorized {
+		return errors.New("planning center account is unauthorized")
+	}
   
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-	  fmt.Println(err.Error())
-	  return
+	  return errors.New("internal server error")
 	}
   
    pcSongData := PlanningCenterResponse{}
    json.Unmarshal(body, &pcSongData)
    for _, song := range pcSongData.Data {
-	cfg.savePCSongToDB(&song, accessToken, userID)
+	cfg.savePCSongToDB(&song, accessToken, org_id)
    }
   
    if pcSongData.Links.Next != "" {
-	  cfg.syncUserSongs(pcSongData.Links.Next, accessToken, userID)
+	  return cfg.fetchandSyncSongs(pcSongData.Links.Next, accessToken, org_id)
    }
+   return nil
   }
 
-func (cfg *config) savePCSongToDB(song *PlanningCenterSong, accessToken string, userID uuid.UUID) {
+func (cfg *config) savePCSongToDB(song *PlanningCenterSong, accessToken string, org_id uuid.UUID) {
 	pcId, err := strconv.Atoi(song.ID)
 	if err != nil {
 		return
 	}
 
-	songID, err := cfg.db.GetSongIdByPCId(context.Background(), validateSqlNullInt32(pcId))
-	if err == sql.ErrNoRows {
-		songID, err = cfg.db.AddPCSong(context.Background(), database.AddPCSongParams{
-			Title: song.Attributes.Title,
-			Themes: validateSqlNullString(song.Attributes.Themes),
-			CopyRight: validateSqlNullString(song.Attributes.Copyright),
-			CcliNumber: validateSqlNullInt32(song.Attributes.CCLINumber),
-			Author: validateSqlNullString(song.Attributes.Author),
-			Admin: validateSqlNullString(song.Attributes.Admin),
-			PcID: validateSqlNullInt32(pcId),
-		})
-		if err != nil {
-			fmt.Print(err)
-			return
-		}
-	} else if err != nil {
-		fmt.Print(err)
+	songID, err := cfg.db.AddSong(context.Background(), database.AddSongParams{
+		Title: song.Attributes.Title,
+		Themes: validateSqlNullString(song.Attributes.Themes),
+		CopyRight: validateSqlNullString(song.Attributes.Copyright),
+		CcliNumber: validateSqlNullInt32(song.Attributes.CCLINumber),
+		Author: validateSqlNullString(song.Attributes.Author),
+		Admin: validateSqlNullString(song.Attributes.Admin),
+		PcID: validateSqlNullInt32(pcId),
+	})
+	if err != nil {
+		fmt.Printf("Unable to add save song to db. \nError: %v\n", err.Error())
 		return
 	}
 
-	cfg.db.CreateUserSongRelation(context.Background(), database.CreateUserSongRelationParams{
-		UserID: userID,
+	cfg.db.CreateOrganizationSongRelation(context.Background(), database.CreateOrganizationSongRelationParams{
 		SongID: songID,
+		OrganizationID: org_id,
 	})
 
 
@@ -119,8 +113,7 @@ func (cfg *config) savePCSongToDB(song *PlanningCenterSong, accessToken string, 
 
 	method := "GET"
   
-	client := &http.Client {
-	}
+	client := &http.Client {}
 	req, err := http.NewRequest(method, url, nil)
   
 	if err != nil {
