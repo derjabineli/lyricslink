@@ -13,6 +13,45 @@ import (
 	"github.com/google/uuid"
 )
 
+const addSong = `-- name: AddSong :one
+INSERT INTO songs (id, created_at, updated_at, title, themes, copy_right, ccli_number, author, admin, pc_id)
+    VALUES(gen_random_uuid(), NOW(), NOW(), $1, $2, $3, $4, $5, $6, $7)
+ON CONFLICT (pc_id) DO UPDATE 
+    SET title = EXCLUDED.title,
+        themes = EXCLUDED.themes,
+        copy_right = EXCLUDED.copy_right,
+        ccli_number = EXCLUDED.ccli_number,
+        author = EXCLUDED.author,
+        admin = EXCLUDED.admin,
+        updated_at = NOW()
+RETURNING id
+`
+
+type AddSongParams struct {
+	Title      string
+	Themes     sql.NullString
+	CopyRight  sql.NullString
+	CcliNumber sql.NullInt32
+	Author     sql.NullString
+	Admin      sql.NullString
+	PcID       sql.NullInt32
+}
+
+func (q *Queries) AddSong(ctx context.Context, arg AddSongParams) (uuid.UUID, error) {
+	row := q.db.QueryRowContext(ctx, addSong,
+		arg.Title,
+		arg.Themes,
+		arg.CopyRight,
+		arg.CcliNumber,
+		arg.Author,
+		arg.Admin,
+		arg.PcID,
+	)
+	var id uuid.UUID
+	err := row.Scan(&id)
+	return id, err
+}
+
 const getSongById = `-- name: GetSongById :one
 SELECT pc_id, admin, author, ccli_number, copy_right, themes, title, id, created_at, updated_at FROM songs
 WHERE id = $1

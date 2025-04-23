@@ -21,3 +21,8 @@ ON CONFLICT ON CONSTRAINT unique_pc_user_pair DO NOTHING;
 -- name: GetOrganizationIDByUserID :one
 SELECT organization_id FROM organizations_users
 WHERE user_id = $1;
+
+-- name: CreateOrganizationSongRelation :exec
+INSERT INTO organizations_songs (id, organization_id, song_id)
+VALUES (gen_random_uuid(), $1, $2)
+ON CONFLICT ON CONSTRAINT unique_org_song_pair DO NOTHING;

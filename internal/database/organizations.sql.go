@@ -11,6 +11,22 @@ import (
 	"github.com/google/uuid"
 )
 
+const createOrganizationSongRelation = `-- name: CreateOrganizationSongRelation :exec
+INSERT INTO organizations_songs (id, organization_id, song_id)
+VALUES (gen_random_uuid(), $1, $2)
+ON CONFLICT ON CONSTRAINT unique_org_song_pair DO NOTHING
+`
+
+type CreateOrganizationSongRelationParams struct {
+	OrganizationID uuid.UUID
+	SongID         uuid.UUID
+}
+
+func (q *Queries) CreateOrganizationSongRelation(ctx context.Context, arg CreateOrganizationSongRelationParams) error {
+	_, err := q.db.ExecContext(ctx, createOrganizationSongRelation, arg.OrganizationID, arg.SongID)
+	return err
+}
+
 const createPlanningCenterOrganization = `-- name: CreatePlanningCenterOrganization :one
 INSERT INTO planning_center_organizations (id, pc_id, name)
     VALUES(gen_random_uuid(), $1, $2)
