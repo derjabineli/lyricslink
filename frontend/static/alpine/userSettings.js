@@ -45,11 +45,15 @@ document.addEventListener("alpine:init", () => {
       try {
         let response = await fetch("/api/songs/sync")
         let data = await response.json()
-        console.log(data)
+        if (data.error) {
+          this.errorMessage = data.error
+        } else if (data.success) {
+          this.successMessage = data.success
+        }
         this.isSyncing = false
       } catch (error) {
         this.isSyncing = false
-        console.log(error)
+        this.errorMessage = error.error
       }
     },
   }))
