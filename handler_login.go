@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -43,23 +42,6 @@ type PlanningCenterError struct {
 type PlanningCenterErrorDetails struct {
 	Code string	`json:"code"`
 	Detail string	`json:"detail"`
-}
-
-type PCaccessParameters struct {
-	GrantType string `json:"grant_type"`
-	Code string `json:"code"`
-	ClientID string `json:"client_id"`
-	ClientSecret string `json:"client_secret"`
-	RedirectURI string `json:"redirect_uri"`
-}
-
-type PCauthorizationParameters struct {
-	AccessToken string `json:"access_token"`
-	TokenType string `json:"token_type"`
-	ExpiresIn int `json:"expires_in"`
-	RefreshToken string `json:"refresh_token"`
-	Scope string `json:"scope"`
-	CreatedAt int `json:"created_at"`
 }
 
 type PCUserParameters struct {
@@ -119,7 +101,7 @@ func (cfg *config) loginWithPC(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	code := parsedURL.Query().Get("code")
-	accessParams := PCaccessParameters {
+	accessParams := PCOAuthAuthorizationCodeRequest {
 		GrantType: "authorization_code",
 		Code: code,
 		ClientID: cfg.pcClient,
@@ -157,14 +139,12 @@ func (cfg *config) loginWithPC(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(user)
-
 	organization, err := cfg.getPCOrganizationData(authParams.AccessToken, pcUserData.Data.Links.Organization)
 	if err != nil {
+		fmt.Println("Org Data error")
 		fmt.Println(err.Error())
 		return
 	}
-	fmt.Println(organization)
 
 	err = cfg.db.CreateUserOrgRelation(context.Background(), database.CreateUserOrgRelationParams{UserID: user.ID, OrganizationID: organization.ID})
 	if err != nil {
@@ -172,7 +152,7 @@ func (cfg *config) loginWithPC(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbToken, err := cfg.db.AddAccessToken(context.Background(), database.AddAccessTokenParams{
+	_, err = cfg.db.AddAccessToken(context.Background(), database.AddAccessTokenParams{
 		UserID: user.ID, 
 		AccessToken: authParams.AccessToken, 
 		TokenType: authParams.TokenType, 
@@ -183,8 +163,6 @@ func (cfg *config) loginWithPC(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err.Error())
 		return
 	}
-
-	fmt.Println(dbToken)
 
 	cookie, err := auth.NewJWTCookie(user.ID, cfg.tokenSecret, cfg.tokenDuration)
 	if err != nil {
@@ -197,39 +175,20 @@ func (cfg *config) loginWithPC(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/dashboard", http.StatusPermanentRedirect)
 }
 
-func getPCToken(requestBody []byte) (PCauthorizationParameters, error) {
-	authParams := PCauthorizationParameters{}
-
-	client := &http.Client{}	
-	authReq, err := http.NewRequest(http.MethodPost, "https://api.planningcenteronline.com/oauth/token", bytes.NewBuffer(requestBody))
-	if err != nil {
-		return authParams, err
-	}
-	authReq.Header.Add("Content-Type", "application/json; charset=utf-8")
-	resp, err := client.Do(authReq)
-	if err != nil {
-		return authParams, err
-	}
-	defer resp.Body.Close()
-	decoder := json.NewDecoder(resp.Body)
-	decoder.Decode(&authParams)
-
-	return authParams, nil
-}
-
 func getPCUserData(bearerToken string) (PCUserParameters, error) {
 	client := &http.Client{}	
 	req, err := http.NewRequest(http.MethodGet, "https://api.planningcenteronline.com/people/v2/me", nil)
 	if err != nil {
 		return PCUserParameters{}, err
 	}
-	req.Header.Add("Authorization", "Bearer "+bearerToken)
+	req.Header.Add("Authorization", "Bearer " + bearerToken)
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Printf("Couldn't make request %v\n", err.Error())
 		return PCUserParameters{}, err
 	}
-	defer resp.Body.Close()
+	// defer resp.Body.Close()
+	fmt.Println(resp.Body)
 	decoder := json.NewDecoder(resp.Body)
 	userParams := PCUserParameters{}
 	err = decoder.Decode(&userParams)
