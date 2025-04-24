@@ -1,9 +1,19 @@
-# Use a lightweight debian os
-# as the base image
+FROM golang:1.21 AS builder
+
+WORKDIR /app
+
+COPY go.mod ./
+COPY go.sum ./
+RUN go mod download
+
+COPY . .
+
+RUN go build -o lyriclink .
+
 FROM debian:stable-slim
 
-# COPY source destination
-COPY lyriclink /bin/lyriclink
+COPY --from=builder /app/lyriclink /bin/lyriclink
+
 COPY frontend /frontend
 COPY internal /internal
 COPY sql /sql
