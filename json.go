@@ -6,7 +6,10 @@ import (
 	"net/http"
 )
 
-type jsonErrorResponse struct {
+
+
+type jsonServerResponse struct {
+    Success string `json:"success"`
     Error string `json:"error"`
 }
 
@@ -29,5 +32,5 @@ func respondWithJSON(w http.ResponseWriter, code int, payload interface{}) error
 }
 
 func respondWithError(w http.ResponseWriter, code int, msg string) error {
-    return respondWithJSON(w, code, jsonErrorResponse{Error: msg})
+    return respondWithJSON(w, code, jsonServerResponse{Error: msg})
 }
