@@ -102,5 +102,8 @@ func (cfg *config) syncPlanningCenterSongs(w http.ResponseWriter, r *http.Reques
 	err = cfg.fetchandSyncSongs(cfg.pcSongRoute, token.AccessToken, organizationID)
 	if err != nil {
 		fmt.Printf("Error encountered error: %v\n", err.Error())
+		respondWithError(w, http.StatusUnauthorized, "Unauthorized Planning Center Account")
+		return
 	}
+	respondWithJSON(w, http.StatusAccepted, jsonServerResponse{Success: "Successfully synced Planning Center Songs"})
 }
