@@ -59,50 +59,6 @@ func (q *Queries) AddPCArrangement(ctx context.Context, arg AddPCArrangementPara
 	return id, err
 }
 
-const addPCSong = `-- name: AddPCSong :one
-WITH upsert AS (
-    UPDATE songs
-    SET updated_at = NOW(),
-        title = $1,
-        themes = $2,
-        copy_right = $3, 
-        ccli_number = $4, 
-        author = $5, 
-        admin = $6
-    WHERE pc_id = $7
-    RETURNING id
-)
-INSERT INTO songs (id, created_at, updated_at, title, themes, copy_right, ccli_number, author, admin, pc_id)
-SELECT gen_random_uuid(), NOW(), NOW(), $1, $2, $3, $4, $5, $6, $7
-WHERE NOT EXISTS (SELECT 1 FROM upsert)
-RETURNING id
-`
-
-type AddPCSongParams struct {
-	Title      string
-	Themes     sql.NullString
-	CopyRight  sql.NullString
-	CcliNumber sql.NullInt32
-	Author     sql.NullString
-	Admin      sql.NullString
-	PcID       sql.NullInt32
-}
-
-func (q *Queries) AddPCSong(ctx context.Context, arg AddPCSongParams) (uuid.UUID, error) {
-	row := q.db.QueryRowContext(ctx, addPCSong,
-		arg.Title,
-		arg.Themes,
-		arg.CopyRight,
-		arg.CcliNumber,
-		arg.Author,
-		arg.Admin,
-		arg.PcID,
-	)
-	var id uuid.UUID
-	err := row.Scan(&id)
-	return id, err
-}
-
 const createUserSongRelation = `-- name: CreateUserSongRelation :exec
 INSERT INTO users_songs (id, user_id, song_id)
 VALUES(gen_random_uuid(), $1, $2)

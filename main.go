@@ -46,7 +46,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	// PAGES
-	mux.Handle("/", cfg.guestOnlyMiddleware(handlerHome))
+	mux.Handle("/", cfg.guestOnlyMiddleware(cfg.handlerHome))
 	mux.Handle("/login", cfg.guestOnlyMiddleware(cfg.loginStatic))
 	mux.HandleFunc("/static/", staticHandler)
 	mux.Handle("/dashboard", cfg.authMiddleware(cfg.handlerDashboard)) 
@@ -60,15 +60,13 @@ func main() {
 	mux.Handle("DELETE /api/events/{id}", cfg.authMiddleware(cfg.deleteEvent))
 	mux.Handle("POST /api/songs", cfg.authMiddleware(cfg.getSongs))
 	mux.Handle("GET /api/songs/{id}", cfg.authMiddleware(cfg.getArrangements))
+	mux.Handle("GET /api/songs/sync", cfg.authMiddleware(cfg.syncPlanningCenterSongs))
 	mux.Handle("POST /api/events_arrangements", cfg.authMiddleware(cfg.addArrangementToEvent))
 	mux.Handle("PUT /api/events_arrangements/{id}", cfg.authMiddleware(cfg.updateEventArrangement))
 	mux.Handle("DELETE /api/events_arrangements/{id}", cfg.authMiddleware(cfg.deleteEventArrangement))
 
 	// AUTH
-	mux.HandleFunc("/pc/callback", cfg.planningcentercallback)
-	mux.HandleFunc("POST /api/register", cfg.register)
-	mux.HandleFunc("POST /api/login", cfg.login)
-	mux.HandleFunc("/pc_redirect", redirect_after_pc_sync)
+	mux.HandleFunc("/pc/callback", cfg.loginWithPC)
 
 	server := &http.Server{
 		Handler: mux,
