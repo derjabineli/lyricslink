@@ -56,7 +56,6 @@ func getPCToken(requestBody []byte) (PCOAuthAuthorizationResponse, error) {
 		return authParams, err
 	}
 	decoder := json.NewDecoder(resp.Body)
-	fmt.Print(resp.Body)
 	err = decoder.Decode(&authParams)
 	if err != nil {
 		fmt.Println(err.Error())
