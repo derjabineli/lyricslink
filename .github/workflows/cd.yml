@@ -32,11 +32,15 @@ jobs:
       - name: "Use gcloud CLI"
         run: "gcloud info"
 
+      - name: Install Cloud Run component
+        run: gcloud components install beta --quiet
+
       - name: Build Docker image and push to Google Artifact Registry
         run: "gcloud builds submit --tag us-central1-docker.pkg.dev/lyriclink-455023/lyriclink-docker-repo/lyriclink:latest ."
 
       - name: Deploy to Google Cloud run
-        run: gcloud run deploy lyriclink \
+        run: |
+          gcloud run deploy lyriclink \
           --image us-central1-docker.pkg.dev/lyriclink-455023/lyriclink-docker-repo/lyriclink:latest \
           --region us-central1 \
           --platform managed \
