@@ -111,12 +111,14 @@ func (cfg *config) loginWithPC(w http.ResponseWriter, r *http.Request) {
 
 	requestBody, err := json.Marshal(accessParams)
 	if err != nil {
+		fmt.Printf("Error when marshalling access params req body.\n err: %v\n", err.Error())
 		http.Redirect(w, r, "/error", http.StatusPermanentRedirect)
 		return
 	}
 
 	authParams, err := getPCToken(requestBody)
 	if err != nil {
+		fmt.Printf("Error when getting PC Token.\n err: %v\n", err.Error())
 		http.Redirect(w, r, "/error", http.StatusPermanentRedirect)
 		return
 	}
