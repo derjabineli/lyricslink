@@ -34,3 +34,11 @@ jobs:
 
       - name: Build Docker image and push to Google Artifact Registry
         run: "gcloud builds submit --tag us-central1-docker.pkg.dev/lyriclink-455023/lyriclink-docker-repo/lyriclink:latest ."
+
+      - name: Deploy to Google Cloud run
+        run: gcloud run deploy lyriclink \
+          --image us-central1-docker.pkg.dev/lyriclink-455023/lyriclink-docker-repo/lyriclink:latest \
+          --region us-central1 \
+          --platform managed \
+          --project lyriclink-455023 \
+          --quiet
