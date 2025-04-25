@@ -12,6 +12,10 @@ RUN go build -o lyriclink .
 
 FROM debian:stable-slim
 
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends ca-certificates
+RUN update-ca-certificates
+
 COPY --from=builder /app/lyriclink /bin/lyriclink
 
 COPY frontend /frontend
