@@ -188,8 +188,7 @@ func getPCUserData(bearerToken string) (PCUserParameters, error) {
 		fmt.Printf("Couldn't make request %v\n", err.Error())
 		return PCUserParameters{}, err
 	}
-	// defer resp.Body.Close()
-	fmt.Println(resp.Body)
+	defer resp.Body.Close()
 	decoder := json.NewDecoder(resp.Body)
 	userParams := PCUserParameters{}
 	err = decoder.Decode(&userParams)
