@@ -143,7 +143,6 @@ func (cfg *config) loginWithPC(w http.ResponseWriter, r *http.Request) {
 
 	organization, err := cfg.getPCOrganizationData(authParams.AccessToken, pcUserData.Data.Links.Organization)
 	if err != nil {
-		fmt.Println("Org Data error")
 		fmt.Println(err.Error())
 		return
 	}
