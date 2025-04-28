@@ -24,6 +24,7 @@
     name = event.name;
     live_link = event.live_link
     songs = event.songs;
+    user = event.user
     $store.event.event_id = id;
   "
     data-event="{{ .Event }}"
@@ -33,7 +34,17 @@
     >
       <a href="/dashboard"><h1 class="text-2xl font-bold">LyricLink</h1></a>
       <div class="flex items-center space-x-4">
-        <div class="w-10 h-10 bg-gray-300 rounded-full"></div>
+        <a href="/settings">
+          <div class="w-10 h-10 bg-gray-300 rounded-full">
+            <template x-if="user.avatar">
+              <img
+                class="w-10 h-10 bg-gray-300 rounded-full"
+                :src="user.avatar"
+                alt=""
+              />
+            </template>
+          </div>
+        </a>
       </div>
     </nav>
 
@@ -177,12 +188,8 @@
               class="mt-2 bg-white shadow-md max-h-40 overflow-y-auto"
               x-show="songs.length == 0 && query.length > 0"
             >
-              <div class="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                <p class="font-bold text-lg">Add New Song</p>
-                <p class="text-stone-800">
-                  Click to add new song:
-                  <span class="italic" x-text="query"></span>
-                </p>
+              <div class="px-4 py-2">
+                <p class="font-bold text-lg">No Results</p>
               </div>
             </div>
             <div
