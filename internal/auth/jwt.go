@@ -12,12 +12,18 @@ import (
 type TokenType string
 
 const (
-	TokenTypeAccess TokenType = "lyriclink-access"
+	AccessTokenType TokenType = "lyriclink-access"
+	RefreshTokenType TokenType = "lyriclink-refresh"
 )
 
-func MakeJWT(userID uuid.UUID, tokenSecret string, expiresIn time.Duration) (string, error) {
+var (
+	AccessTokenDuration  = 15 * time.Minute
+	RefreshTokenDuration = 30 * 24 * time.Hour
+)
+
+func MakeJWT(userID uuid.UUID, tokenSecret string, expiresIn time.Duration, issuer TokenType) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.RegisteredClaims{
-		Issuer: string(TokenTypeAccess),
+		Issuer: string(issuer),
 		IssuedAt: jwt.NewNumericDate(time.Now()),
 		ExpiresAt: jwt.NewNumericDate(time.Now().Add(expiresIn)),
 		Subject: userID.String(),
@@ -25,7 +31,7 @@ func MakeJWT(userID uuid.UUID, tokenSecret string, expiresIn time.Duration) (str
 	return token.SignedString([]byte(tokenSecret))
 }
 
-func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, error) {
+func ValidateJWT(tokenString, tokenSecret string, issuerType TokenType) (uuid.UUID, error) {
 	claims := jwt.RegisteredClaims{}
 	token, err := jwt.ParseWithClaims(
 		tokenString, 
@@ -44,7 +50,7 @@ func ValidateJWT(tokenString, tokenSecret string) (uuid.UUID, error) {
 	if err != nil {
 		return uuid.Nil, err
 	}
-	if issuer != string(TokenTypeAccess) {
+	if issuer != string(issuerType) {
 		return uuid.Nil, errors.New("invalid issuer")
 	}
 	expiration, err := token.Claims.GetExpirationTime()
@@ -69,8 +75,8 @@ func checkTokenExpiration(expiration time.Time) bool{
 	return now.After(expiration)
 }
 
-func NewJWTCookie(id uuid.UUID, tokenSecret string, expiresIn time.Duration) (*http.Cookie, error) {
-	jwtToken, err := MakeJWT(id, tokenSecret, expiresIn)
+func NewAccessTokenCookie(id uuid.UUID, tokenSecret string) (*http.Cookie, error) {
+	jwtToken, err := MakeJWT(id, tokenSecret, AccessTokenDuration, AccessTokenType)
 	if err != nil {
 		return nil, err
 	}
@@ -79,9 +85,28 @@ func NewJWTCookie(id uuid.UUID, tokenSecret string, expiresIn time.Duration) (*h
 		Name:     "ll_user",
 		Value:    jwtToken,
 		HttpOnly: true, // Make the cookie inaccessible to JavaScript
-		Secure:   false, // Ensure the cookie is only sent over HTTPS
+		Secure:   true, // Ensure the cookie is only sent over HTTPS
 		SameSite: http.SameSiteLaxMode, // Protect against CSRF attacks
-		Expires:  time.Now().Add(24 * time.Hour), // Set cookie expiration
+		Expires:  time.Now().Add(AccessTokenDuration), // Set cookie expiration
+		Path:     "/", // Define cookie scope
+	}
+
+	return cookie, nil
+}
+
+func NewRefreshTokenCookie(id uuid.UUID, tokenSecret string) (*http.Cookie, error) {
+	jwtToken, err := MakeJWT(id, tokenSecret, RefreshTokenDuration, RefreshTokenType)
+	if err != nil {
+		return nil, err
+	}
+
+	cookie := &http.Cookie{
+		Name:     "ll_refresh",
+		Value:    jwtToken,
+		HttpOnly: true, // Make the cookie inaccessible to JavaScript
+		Secure:   true, // Ensure the cookie is only sent over HTTPS
+		SameSite: http.SameSiteStrictMode, // Protect against CSRF attacks
+		Expires:  time.Now().Add(RefreshTokenDuration), // Set cookie expiration
 		Path:     "/", // Define cookie scope
 	}
 
