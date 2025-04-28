@@ -19,12 +19,13 @@ type newEventParameters struct {
 	Date string `json:"date"`
 }
 
-type eventParameters struct {
-	ID uuid.UUID 	`json:"id"`
-	Name string		`json:"name"`
-	Date string		`json:"date"`
+type EventViewData struct {
+	ID uuid.UUID 		`json:"id"`
+	Name string			`json:"name"`
+	Date string			`json:"date"`
 	Songs map[uuid.UUID]songParameters `json:"songs"`
-	Livelink string `json:"live_link"`
+	Livelink string 	`json:"live_link"`
+	User UserViewData 	`json:"user"`
 }
 
 type songParameters struct {
@@ -56,6 +57,17 @@ type updateEventParameters struct {
 }
 
 func (cfg *config) handlerEvents(w http.ResponseWriter, r *http.Request) {
+	userID, err := getUserIDFromContext(r)
+	if err != nil {
+		http.Redirect(w, r, "/login", http.StatusPermanentRedirect)
+		return
+	}
+	user, err := cfg.db.GetUserById(context.Background(), userID)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "couldn't fetch user")
+		return
+	}
+
 	eventQuery := path.Base(r.URL.Path)
 
 	eventID, err := uuid.Parse(eventQuery)
@@ -72,7 +84,7 @@ func (cfg *config) handlerEvents(w http.ResponseWriter, r *http.Request) {
 	arrangements, _ := cfg.db.GetArrangementsWithEventId(context.Background(), eventID)
 
 	livelink := fmt.Sprintf("/live/%v", eventID)
-	eventParams := eventParameters{ID: eventID, Name: event.Name, Date: formattedDate, Livelink: livelink, Songs: map[uuid.UUID]songParameters{}}
+	eventParams := EventViewData{ID: eventID, Name: event.Name, Date: formattedDate, Livelink: livelink, Songs: map[uuid.UUID]songParameters{}}
 
 	for _, a := range arrangements {
 		song, exists := eventParams.Songs[a.SongID]
@@ -99,6 +111,8 @@ func (cfg *config) handlerEvents(w http.ResponseWriter, r *http.Request) {
 	
 		eventParams.Songs[a.SongID] = song
 	}
+
+	eventParams.User.Avatar = user.Avatar
 
 	eventJSON, _ := json.Marshal(eventParams)
 

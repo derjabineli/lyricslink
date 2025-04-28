@@ -11,20 +11,20 @@ import (
 	"github.com/derjabineli/lyricslink/internal/database"
 )
 
-type formattedEvent struct {
+type FormattedEvent struct {
 	Link string `json:"link"`
 	Name string `json:"name"`
 	Date string	`json:"date"`
 	ID string	`json:"id"`
 }
 
-type userParameters struct {
+type UserViewData struct {
 	Avatar string	`json:"avatar"`
 }
 
-type dashboardParameters struct {
-	User userParameters		`json:"user"`
-	Events []formattedEvent `json:"events"`
+type DashboardViewData struct {
+	User UserViewData		`json:"user"`
+	Events []FormattedEvent `json:"events"`
 }
 
 func (cfg *config) handlerDashboard(w http.ResponseWriter, r *http.Request) {
@@ -47,8 +47,8 @@ func (cfg *config) handlerDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	formattedEvents := formatEvents(events)
-	data := dashboardParameters{
-		User: userParameters{
+	data := DashboardViewData{
+		User: UserViewData{
 			Avatar: user.Avatar,
 		},
 		Events: formattedEvents,
@@ -75,13 +75,13 @@ func (cfg *config) handlerDashboard(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func formatEvents(events []database.Event) []formattedEvent {
-	formattedEvents := []formattedEvent{}
+func formatEvents(events []database.Event) []FormattedEvent {
+	formattedEvents := []FormattedEvent{}
 
 	for _, event := range events {
 		link := fmt.Sprintf("events/%v", event.ID)
 
-		formattedEvents = append(formattedEvents, formattedEvent{
+		formattedEvents = append(formattedEvents, FormattedEvent{
 			Link: link,
 			Name: event.Name,
 			Date: event.Date.Format("January 2, 2006"),
