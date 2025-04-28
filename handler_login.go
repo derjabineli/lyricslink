@@ -165,13 +165,19 @@ func (cfg *config) loginWithPC(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie, err := auth.NewJWTCookie(user.ID, cfg.tokenSecret, cfg.tokenDuration)
+	accessCookie, err := auth.NewAccessTokenCookie(user.ID, cfg.tokenSecret)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "There was an issue logging you in. Please try again")
+		return
+	}
+	refreshCookie, err := auth.NewRefreshTokenCookie(user.ID, cfg.tokenSecret)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "There was an issue logging you in. Please try again")
 		return
 	}
 
-	http.SetCookie(w, cookie)
+	http.SetCookie(w, accessCookie)
+	http.SetCookie(w, refreshCookie)
 
 	http.Redirect(w, r, "/dashboard", http.StatusPermanentRedirect)
 }
