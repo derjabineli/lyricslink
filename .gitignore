@@ -1,5 +1,4 @@
 .env
 .vscode
-/frontend/tailwind.config.js
 /frontend/tailwindcss
 lyriclink
