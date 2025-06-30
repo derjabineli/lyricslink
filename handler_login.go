@@ -153,7 +153,7 @@ func (cfg *config) loginWithPC(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = cfg.db.AddAccessToken(context.Background(), database.AddAccessTokenParams{
+	session, err := cfg.db.AddUserSession(context.Background(), database.AddUserSessionParams{
 		UserID: user.ID, 
 		AccessToken: authParams.AccessToken, 
 		TokenType: authParams.TokenType, 
@@ -165,12 +165,12 @@ func (cfg *config) loginWithPC(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	accessCookie, err := auth.NewAccessTokenCookie(user.ID, cfg.tokenSecret)
+	accessCookie, err := auth.NewAccessTokenCookie(user.ID, session.ID, cfg.tokenSecret)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "There was an issue logging you in. Please try again")
 		return
 	}
-	refreshCookie, err := auth.NewRefreshTokenCookie(user.ID, cfg.tokenSecret)
+	refreshCookie, err := auth.NewRefreshTokenCookie(user.ID, session.ID, cfg.tokenSecret)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "There was an issue logging you in. Please try again")
 		return
