@@ -98,6 +98,19 @@ type User struct {
 	PcID          string
 }
 
+type UserSession struct {
+	ID           uuid.UUID
+	UserID       uuid.UUID
+	AccessToken  string
+	TokenType    string
+	ExpiresIn    int32
+	RefreshToken string
+	Scope        string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	Revoked      bool
+}
+
 type UsersSong struct {
 	ID     uuid.UUID
 	UserID uuid.UUID
