@@ -64,6 +64,7 @@ func main() {
 	mux.Handle("POST /api/events_arrangements", cfg.authMiddleware(cfg.addArrangementToEvent))
 	mux.Handle("PUT /api/events_arrangements/{id}", cfg.authMiddleware(cfg.updateEventArrangement))
 	mux.Handle("DELETE /api/events_arrangements/{id}", cfg.authMiddleware(cfg.deleteEventArrangement))
+	mux.HandleFunc("GET /api/logout", cfg.handlerLogout)
 
 	// AUTH
 	mux.HandleFunc("/pc/callback", cfg.loginWithPC)
