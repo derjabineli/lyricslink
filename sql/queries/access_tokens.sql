@@ -11,5 +11,14 @@ ON CONFLICT (user_id) DO UPDATE
 RETURNING *;
 
 -- name: GetTokenByUserID :one
-SELECT * FROM planning_center_tokens
-WHERE user_id = $1;
+SELECT * FROM user_sessions
+WHERE user_id = $1 AND revoked = FALSE;
+
+-- name: UpdateUserToken :one
+UPDATE user_sessions
+SET access_token = $1,
+    refresh_token = $2,
+    scope = $3,
+    updated_at = NOW()
+WHERE id = $4
+RETURNING *;

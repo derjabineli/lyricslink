@@ -51,6 +51,29 @@ func (q *Queries) AddUserSession(ctx context.Context, arg AddUserSessionParams) 
 	return i, err
 }
 
+const getSessionByID = `-- name: GetSessionByID :one
+SELECT id, user_id, access_token, token_type, expires_in, refresh_token, scope, created_at, updated_at, revoked FROM user_sessions
+WHERE id = $1
+`
+
+func (q *Queries) GetSessionByID(ctx context.Context, id uuid.UUID) (UserSession, error) {
+	row := q.db.QueryRowContext(ctx, getSessionByID, id)
+	var i UserSession
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.AccessToken,
+		&i.TokenType,
+		&i.ExpiresIn,
+		&i.RefreshToken,
+		&i.Scope,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Revoked,
+	)
+	return i, err
+}
+
 const getSessionRevokedStatus = `-- name: GetSessionRevokedStatus :one
 SELECT revoked FROM user_sessions
 WHERE id = $1

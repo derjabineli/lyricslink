@@ -59,13 +59,53 @@ func (q *Queries) AddAccessToken(ctx context.Context, arg AddAccessTokenParams) 
 }
 
 const getTokenByUserID = `-- name: GetTokenByUserID :one
-SELECT id, user_id, access_token, token_type, expires_in, refresh_token, scope, created_at, updated_at, revoked FROM planning_center_tokens
-WHERE user_id = $1
+SELECT id, user_id, access_token, token_type, expires_in, refresh_token, scope, created_at, updated_at, revoked FROM user_sessions
+WHERE user_id = $1 AND revoked = FALSE
 `
 
-func (q *Queries) GetTokenByUserID(ctx context.Context, userID uuid.UUID) (PlanningCenterToken, error) {
+func (q *Queries) GetTokenByUserID(ctx context.Context, userID uuid.UUID) (UserSession, error) {
 	row := q.db.QueryRowContext(ctx, getTokenByUserID, userID)
-	var i PlanningCenterToken
+	var i UserSession
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.AccessToken,
+		&i.TokenType,
+		&i.ExpiresIn,
+		&i.RefreshToken,
+		&i.Scope,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Revoked,
+	)
+	return i, err
+}
+
+const updateUserToken = `-- name: UpdateUserToken :one
+UPDATE user_sessions
+SET access_token = $1,
+    refresh_token = $2,
+    scope = $3,
+    updated_at = NOW()
+WHERE id = $4
+RETURNING id, user_id, access_token, token_type, expires_in, refresh_token, scope, created_at, updated_at, revoked
+`
+
+type UpdateUserTokenParams struct {
+	AccessToken  string
+	RefreshToken string
+	Scope        string
+	ID           uuid.UUID
+}
+
+func (q *Queries) UpdateUserToken(ctx context.Context, arg UpdateUserTokenParams) (UserSession, error) {
+	row := q.db.QueryRowContext(ctx, updateUserToken,
+		arg.AccessToken,
+		arg.RefreshToken,
+		arg.Scope,
+		arg.ID,
+	)
+	var i UserSession
 	err := row.Scan(
 		&i.ID,
 		&i.UserID,

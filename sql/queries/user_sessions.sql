@@ -11,3 +11,7 @@ WHERE id = $1;
 UPDATE user_sessions
 SET revoked = TRUE
 WHERE id = $1;
+
+-- name: GetSessionByID :one
+SELECT * FROM user_sessions
+WHERE id = $1;
