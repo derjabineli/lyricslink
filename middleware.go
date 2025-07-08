@@ -12,8 +12,9 @@ import (
 type contextKey string
 
 const userIDKey contextKey = "userID"
+const sessionIDKey contextKey = "sessionID"
 
-func (cfg *config) getUserIDFromCookie(r *http.Request, tokenName string, tokenType auth.TokenType) (uuid.UUID, uuid.UUID, error) {
+func (cfg *config) getUserFromCookie(r *http.Request, tokenName string, tokenType auth.TokenType) (uuid.UUID, uuid.UUID, error) {
 	cookie, err := r.Cookie(tokenName)
 	if err != nil {
 		return uuid.Nil, uuid.Nil, errors.New("no token found")
@@ -23,16 +24,17 @@ func (cfg *config) getUserIDFromCookie(r *http.Request, tokenName string, tokenT
 
 func (cfg *config) authMiddleware(next http.HandlerFunc) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userID, sessionID, err := cfg.getUserIDFromCookie(r, "ll_user", auth.AccessTokenType)
+		userID, sessionID, err := cfg.getUserFromCookie(r, "ll_user", auth.AccessTokenType)
 
 		revoked, _ := cfg.db.GetSessionRevokedStatus(context.Background(), sessionID)
 
 		if err == nil && !revoked{
 			ctx := context.WithValue(r.Context(), userIDKey, userID)
+			ctx = context.WithValue(ctx, sessionIDKey, sessionID)
 			next.ServeHTTP(w, r.WithContext(ctx))
 			return
 		} else {
-			userID, sessionID, err = cfg.getUserIDFromCookie(r, "ll_refresh", auth.RefreshTokenType)
+			userID, sessionID, err = cfg.getUserFromCookie(r, "ll_refresh", auth.RefreshTokenType)
 			if err != nil {
 				http.Redirect(w, r, "/login", http.StatusSeeOther)
 				return
@@ -59,9 +61,18 @@ func getUserIDFromContext(r *http.Request) (uuid.UUID, error) {
 	return userID, nil
 }
 
+func getSessionIDFromContext(r *http.Request) (uuid.UUID, error) {
+	sessionID, ok := r.Context().Value(sessionIDKey).(uuid.UUID)
+	if !ok {
+		return uuid.Nil, errors.New("no user id present")
+	}
+
+	return sessionID, nil
+}
+
 func (cfg *config) guestOnlyMiddleware(next http.HandlerFunc) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, sessionID, err := cfg.getUserIDFromCookie(r, "ll_user", auth.AccessTokenType)
+		_, sessionID, err := cfg.getUserFromCookie(r, "ll_user", auth.AccessTokenType)
 		revoked, _ := cfg.db.GetSessionRevokedStatus(context.Background(), sessionID)
 		if err == nil  && !revoked {
 			http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
