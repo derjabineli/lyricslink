@@ -76,30 +76,42 @@ func (cfg *config) getSongs(w http.ResponseWriter, r *http.Request) {
 func (cfg *config) syncPlanningCenterSongs(w http.ResponseWriter, r *http.Request) {
 	userID, err := getUserIDFromContext(r)
 	if err != nil {
-		fmt.Printf("Error: %v\n", err)
+		respondWithError(w, http.StatusBadRequest, "We encountered an error syncing your songs. Please try logging out and logging in again.")
+		return
+	}
+	sessionID, err := getSessionIDFromContext(r)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "We encountered an error syncing your songs. Please try logging out and logging in again.")
 		return
 	}
 	ctx := context.Background()
 
 	organizationID, err := cfg.db.GetOrganizationIDByUserID(ctx, userID)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "there was an error syncing your songs")
+		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	token, err := cfg.db.GetTokenByUserID(ctx, userID)
+	token, err := cfg.db.GetSessionByID(ctx, sessionID)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "there was an error syncing your songs")
+		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
+
+	accessToken := token.AccessToken
 
 	tokenExpiration := token.UpdatedAt.Add(time.Second*time.Duration(token.ExpiresIn))
 	if time.Now().After(tokenExpiration){
 		fmt.Println("Token expired!")
-		return
+		newAccessToken, err := cfg.refreshSessionToken(token)
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, "Please logout and login again to sync songs")
+			return
+		}
+		accessToken = newAccessToken
 	}
 
-	err = cfg.fetchandSyncSongs(cfg.pcSongRoute, token.AccessToken, organizationID)
+	err = cfg.fetchandSyncSongs(cfg.pcSongRoute, accessToken, organizationID)
 	if err != nil {
 		fmt.Printf("Error encountered error: %v\n", err.Error())
 		respondWithError(w, http.StatusUnauthorized, "Unauthorized Planning Center Account")
