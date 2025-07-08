@@ -7,45 +7,45 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/google/uuid"
+	"github.com/derjabineli/lyricslink/internal/database"
 )
 
 type PCOAuthAuthorizationCodeRequest struct {
-	GrantType string `json:"grant_type"`
-	Code string `json:"code"`
-	ClientID string `json:"client_id"`
+	GrantType    string `json:"grant_type"`
+	Code         string `json:"code"`
+	ClientID     string `json:"client_id"`
 	ClientSecret string `json:"client_secret"`
-	RedirectURI string `json:"redirect_uri"`
+	RedirectURI  string `json:"redirect_uri"`
 }
 
 type PCOAuthAuthorizationResponse struct {
-	AccessToken string `json:"access_token"`
-	TokenType string `json:"token_type"`
-	ExpiresIn int `json:"expires_in"`
+	AccessToken  string `json:"access_token"`
+	TokenType    string `json:"token_type"`
+	ExpiresIn    int    `json:"expires_in"`
 	RefreshToken string `json:"refresh_token"`
-	Scope string `json:"scope"`
-	CreatedAt int `json:"created_at"`
+	Scope        string `json:"scope"`
+	CreatedAt    int    `json:"created_at"`
 }
 
 type PCOAuthRefreshRequest struct {
-	ClientID string `json:"client_id"`
+	ClientID     string `json:"client_id"`
 	ClientSecret string `json:"client_secret"`
 	RefreshToken string `json:"refresh_token"`
-	GrantType string `json:"grant_type"`
+	GrantType    string `json:"grant_type"`
 }
 
 type PCOAuthRefreshResponse struct {
-	AccessToken string `json:"access_token"`
-	TokenType string `json:"token_type"`
-	ExpiresIn int `json:"expires_in"`
+	AccessToken  string `json:"access_token"`
+	TokenType    string `json:"token_type"`
+	ExpiresIn    int    `json:"expires_in"`
 	RefreshToken string `json:"refresh_token"`
-	CreatedAt int `json:"created_at"`
+	CreatedAt    int    `json:"created_at"`
 }
 
 func getPCToken(requestBody []byte) (PCOAuthAuthorizationResponse, error) {
 	authParams := PCOAuthAuthorizationResponse{}
 
-	client := &http.Client{}	
+	client := &http.Client{}
 	authReq, err := http.NewRequest(http.MethodPost, "https://api.planningcenteronline.com/oauth/token", bytes.NewBuffer(requestBody))
 	if err != nil {
 		return authParams, err
@@ -63,22 +63,34 @@ func getPCToken(requestBody []byte) (PCOAuthAuthorizationResponse, error) {
 	return authParams, nil
 }
 
-func (cfg *config) refreshUserToken(userID uuid.UUID) {
-	token, err := cfg.db.GetTokenByUserID(context.Background(), userID)
-	if err != nil {
-		return
-	}
-
-	oAuthRefreshRequest := PCOAuthRefreshRequest {
-		ClientID: cfg.pcClient,
+func (cfg *config) refreshSessionToken(token database.UserSession) (string, error) {
+	oAuthRefreshRequest := PCOAuthRefreshRequest{
+		ClientID:     cfg.pcClient,
 		ClientSecret: cfg.pcSecret,
 		RefreshToken: token.RefreshToken,
-		GrantType: "refresh_token",
+		GrantType:    "refresh_token",
 	}
 	jsonRequest, err := json.Marshal(oAuthRefreshRequest)
 	if err != nil {
-		return
+		return "", err
 	}
 
-	getPCToken(jsonRequest)
+	authParams, err := getPCToken(jsonRequest)
+	if err != nil {
+		return "", err
+	}
+
+	newToken, err := cfg.db.UpdateUserToken(context.Background(),
+		database.UpdateUserTokenParams{
+			AccessToken:  authParams.AccessToken,
+			RefreshToken: authParams.RefreshToken,
+			Scope:        authParams.Scope,
+			ID:           token.ID,
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return newToken.AccessToken, nil
 }
+
