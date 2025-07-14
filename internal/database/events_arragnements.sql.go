@@ -14,31 +14,33 @@ import (
 )
 
 const addArrangementToEvent = `-- name: AddArrangementToEvent :one
-INSERT INTO events_arrangements (id, event_id, arrangement_id, created_at, updated_at)
-VALUES (gen_random_uuid(), $1, $2, NOW(), NOW())
-RETURNING event_id, id, created_at, updated_at, arrangement_id
+INSERT INTO events_songs (id, event_id, song_id, arrangement_id)
+VALUES (gen_random_uuid(), $1, $2, $3)
+RETURNING id, event_id, song_id, arrangement_id, created_at, updated_at
 `
 
 type AddArrangementToEventParams struct {
 	EventID       uuid.UUID
+	SongID        uuid.UUID
 	ArrangementID uuid.UUID
 }
 
-func (q *Queries) AddArrangementToEvent(ctx context.Context, arg AddArrangementToEventParams) (EventsArrangement, error) {
-	row := q.db.QueryRowContext(ctx, addArrangementToEvent, arg.EventID, arg.ArrangementID)
-	var i EventsArrangement
+func (q *Queries) AddArrangementToEvent(ctx context.Context, arg AddArrangementToEventParams) (EventsSong, error) {
+	row := q.db.QueryRowContext(ctx, addArrangementToEvent, arg.EventID, arg.SongID, arg.ArrangementID)
+	var i EventsSong
 	err := row.Scan(
-		&i.EventID,
 		&i.ID,
+		&i.EventID,
+		&i.SongID,
+		&i.ArrangementID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.ArrangementID,
 	)
 	return i, err
 }
 
 const deleteEventArrangement = `-- name: DeleteEventArrangement :exec
-DELETE FROM events_arrangements WHERE id = $1
+DELETE FROM events_songs WHERE id = $1
 `
 
 func (q *Queries) DeleteEventArrangement(ctx context.Context, id uuid.UUID) error {
@@ -50,13 +52,13 @@ const getArrangementsAndSongsWithEventId = `-- name: GetArrangementsAndSongsWith
 SELECT 
     s.pc_id, s.admin, s.author, s.ccli_number, s.copy_right, s.themes, s.title, s.id, s.created_at, s.updated_at,
     a.name, a.lyrics, a.chord_chart, a.id, a.pc_id, a.chord_chart_key, a.song_id, a.created_at, a.updated_at, a.has_chords, a.has_chord_chart
-FROM events_arrangements ea
+FROM events_songs es
 JOIN arrangements a 
-    ON a.id =  ea.arrangement_id
+    ON a.id =  es.arrangement_id
 JOIN songs s
     ON s.id = a.song_id
-WHERE ea.event_id = $1
-ORDER BY ea.created_at ASC
+WHERE es.event_id = $1
+ORDER BY es.created_at ASC
 `
 
 type GetArrangementsAndSongsWithEventIdRow struct {
@@ -130,35 +132,26 @@ func (q *Queries) GetArrangementsAndSongsWithEventId(ctx context.Context, eventI
 
 const getArrangementsWithEventId = `-- name: GetArrangementsWithEventId :many
 SELECT 
-    a.name, a.lyrics, a.chord_chart, a.id, a.pc_id, a.chord_chart_key, a.song_id, a.created_at, a.updated_at, a.has_chords, a.has_chord_chart,
-    ea.id AS event_arrangement_id, 
-    CASE 
-        WHEN a.id = ea.arrangement_id THEN TRUE 
-        ELSE FALSE 
-    END AS is_selected
-FROM events_arrangements ea
-JOIN arrangements a 
-    ON a.song_id = (
-        SELECT song_id FROM arrangements WHERE id = ea.arrangement_id
-    )
-WHERE ea.event_id = $1
-ORDER BY ea.created_at ASC
+    es.id, es.event_id, es.song_id, es.arrangement_id, es.created_at, es.updated_at, 
+    a.name as arrangement_name,
+    a.lyrics,
+    a.chord_chart
+FROM events_songs es
+JOIN arrangements a ON es.arrangement_id = a.id
+WHERE es.event_id = $1
+ORDER BY es.created_at ASC
 `
 
 type GetArrangementsWithEventIdRow struct {
-	Name               string
-	Lyrics             string
-	ChordChart         sql.NullString
-	ID                 uuid.UUID
-	PcID               sql.NullInt32
-	ChordChartKey      sql.NullString
-	SongID             uuid.UUID
-	CreatedAt          time.Time
-	UpdatedAt          time.Time
-	HasChords          bool
-	HasChordChart      bool
-	EventArrangementID uuid.UUID
-	IsSelected         bool
+	ID              uuid.UUID
+	EventID         uuid.UUID
+	SongID          uuid.UUID
+	ArrangementID   uuid.UUID
+	CreatedAt       time.Time
+	UpdatedAt       time.Time
+	ArrangementName string
+	Lyrics          string
+	ChordChart      sql.NullString
 }
 
 func (q *Queries) GetArrangementsWithEventId(ctx context.Context, eventID uuid.UUID) ([]GetArrangementsWithEventIdRow, error) {
@@ -171,19 +164,15 @@ func (q *Queries) GetArrangementsWithEventId(ctx context.Context, eventID uuid.U
 	for rows.Next() {
 		var i GetArrangementsWithEventIdRow
 		if err := rows.Scan(
-			&i.Name,
-			&i.Lyrics,
-			&i.ChordChart,
 			&i.ID,
-			&i.PcID,
-			&i.ChordChartKey,
+			&i.EventID,
 			&i.SongID,
+			&i.ArrangementID,
 			&i.CreatedAt,
 			&i.UpdatedAt,
-			&i.HasChords,
-			&i.HasChordChart,
-			&i.EventArrangementID,
-			&i.IsSelected,
+			&i.ArrangementName,
+			&i.Lyrics,
+			&i.ChordChart,
 		); err != nil {
 			return nil, err
 		}
@@ -199,10 +188,10 @@ func (q *Queries) GetArrangementsWithEventId(ctx context.Context, eventID uuid.U
 }
 
 const updateArrangement = `-- name: UpdateArrangement :one
-UPDATE events_arrangements
+UPDATE events_songs
 SET arrangement_id = $1, updated_at = NOW()
 WHERE id = $2
-RETURNING event_id, id, created_at, updated_at, arrangement_id
+RETURNING id, event_id, song_id, arrangement_id, created_at, updated_at
 `
 
 type UpdateArrangementParams struct {
@@ -210,15 +199,16 @@ type UpdateArrangementParams struct {
 	ID            uuid.UUID
 }
 
-func (q *Queries) UpdateArrangement(ctx context.Context, arg UpdateArrangementParams) (EventsArrangement, error) {
+func (q *Queries) UpdateArrangement(ctx context.Context, arg UpdateArrangementParams) (EventsSong, error) {
 	row := q.db.QueryRowContext(ctx, updateArrangement, arg.ArrangementID, arg.ID)
-	var i EventsArrangement
+	var i EventsSong
 	err := row.Scan(
-		&i.EventID,
 		&i.ID,
+		&i.EventID,
+		&i.SongID,
+		&i.ArrangementID,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.ArrangementID,
 	)
 	return i, err
 }

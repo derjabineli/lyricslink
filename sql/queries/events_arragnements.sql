@@ -1,41 +1,37 @@
 -- name: GetArrangementsWithEventId :many
 SELECT 
-    a.*,
-    ea.id AS event_arrangement_id, 
-    CASE 
-        WHEN a.id = ea.arrangement_id THEN TRUE 
-        ELSE FALSE 
-    END AS is_selected
-FROM events_arrangements ea
-JOIN arrangements a 
-    ON a.song_id = (
-        SELECT song_id FROM arrangements WHERE id = ea.arrangement_id
-    )
-WHERE ea.event_id = $1
-ORDER BY ea.created_at ASC;
+    es.*, 
+    a.name as arrangement_name,
+    a.lyrics,
+    a.chord_chart
+FROM events_songs es
+JOIN arrangements a ON es.arrangement_id = a.id
+WHERE es.event_id = $1
+ORDER BY es.created_at ASC;
+
 
 -- name: AddArrangementToEvent :one
-INSERT INTO events_arrangements (id, event_id, arrangement_id, created_at, updated_at)
-VALUES (gen_random_uuid(), $1, $2, NOW(), NOW())
+INSERT INTO events_songs (id, event_id, song_id, arrangement_id)
+VALUES (gen_random_uuid(), $1, $2, $3)
 RETURNING *;
 
 -- name: GetArrangementsAndSongsWithEventId :many
 SELECT 
     s.*,
     a.*
-FROM events_arrangements ea
+FROM events_songs es
 JOIN arrangements a 
-    ON a.id =  ea.arrangement_id
+    ON a.id =  es.arrangement_id
 JOIN songs s
     ON s.id = a.song_id
-WHERE ea.event_id = $1
-ORDER BY ea.created_at ASC;
+WHERE es.event_id = $1
+ORDER BY es.created_at ASC;
 
 -- name: DeleteEventArrangement :exec
-DELETE FROM events_arrangements WHERE id = $1;
+DELETE FROM events_songs WHERE id = $1;
 
 -- name: UpdateArrangement :one
-UPDATE events_arrangements
+UPDATE events_songs
 SET arrangement_id = $1, updated_at = NOW()
 WHERE id = $2
 RETURNING *;

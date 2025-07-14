@@ -50,3 +50,48 @@ func (q *Queries) GetArrangementWithSongId(ctx context.Context, songID uuid.UUID
 	}
 	return items, nil
 }
+
+const getAvailableArrangements = `-- name: GetAvailableArrangements :many
+SELECT name, lyrics, chord_chart, id, pc_id, chord_chart_key, song_id, created_at, updated_at, has_chords, has_chord_chart FROM arrangements
+WHERE song_id = $1 AND id != $2
+`
+
+type GetAvailableArrangementsParams struct {
+	SongID uuid.UUID
+	ID     uuid.UUID
+}
+
+func (q *Queries) GetAvailableArrangements(ctx context.Context, arg GetAvailableArrangementsParams) ([]Arrangement, error) {
+	rows, err := q.db.QueryContext(ctx, getAvailableArrangements, arg.SongID, arg.ID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Arrangement
+	for rows.Next() {
+		var i Arrangement
+		if err := rows.Scan(
+			&i.Name,
+			&i.Lyrics,
+			&i.ChordChart,
+			&i.ID,
+			&i.PcID,
+			&i.ChordChartKey,
+			&i.SongID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.HasChords,
+			&i.HasChordChart,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
