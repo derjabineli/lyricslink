@@ -84,7 +84,7 @@ func (cfg *config) handlerEvents(w http.ResponseWriter, r *http.Request) {
 	}
 	formattedDate := event.Date.Format("2006-01-02")
 
-	arrangements, err := cfg.db.GetArrangementsWithEventId(context.Background(), eventID)
+	eventArrangments, err := cfg.db.GetArrangementsWithEventId(context.Background(), eventID)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, fmt.Sprintf("error finding arrangements with event id %v", eventID))
 		return
@@ -94,41 +94,50 @@ func (cfg *config) handlerEvents(w http.ResponseWriter, r *http.Request) {
 	livelink := fmt.Sprintf("/live/%v", eventID)
 	eventParams := EventViewData{ID: eventID, Name: event.Name, Date: formattedDate, Livelink: livelink, Songs: []songParameters{}}
 
-	seenSongs := make(map[uuid.UUID]int)
 
-	for _, a := range arrangements {
-		idx, exists := seenSongs[a.SongID]
-		var song songParameters
-		if !exists {
-			dbSong, err := cfg.db.GetSongById(context.Background(), a.SongID)
-			if err != nil {
-				fmt.Printf("Error: finding song with id %v\n", a.SongID)
-				fmt.Printf("Error: %v\n", err)
-				continue
-			}
+	for _, selectedArrangement := range eventArrangments {
+		dbSong, err := cfg.db.GetSongById(context.Background(), selectedArrangement.SongID)
+		if err != nil {
+			fmt.Printf("Error: finding song with id %v\n", selectedArrangement.SongID)
+			fmt.Printf("Error: %v\n", err)
+			continue
+		}
+		song := songParameters{
+			ID:           selectedArrangement.SongID,
+			PC_ID:        int(dbSong.PcID.Int32),
+			Event_Arrangement_Id: selectedArrangement.ID,
+			Title:        dbSong.Title,
+			Arrangements: []arrangementParameters{},
+		}
+		eventParams.Songs = append(eventParams.Songs, song)
+		idx := len(eventParams.Songs) - 1
 
-			song = songParameters{
-				ID:           a.SongID,
-				PC_ID:        int(dbSong.PcID.Int32),
-				Title:        dbSong.Title,
-				Arrangements: []arrangementParameters{},
-			}
-
-			eventParams.Songs = append(eventParams.Songs, song)
-			idx = len(eventParams.Songs) - 1
-			seenSongs[song.ID] = idx
-
-		} else {
-			song = eventParams.Songs[idx]
+		available_arrangements, err := cfg.db.GetAvailableArrangements(context.Background(), database.GetAvailableArrangementsParams{SongID: dbSong.ID, ID: selectedArrangement.ArrangementID})
+		if err != nil {
+			fmt.Printf("Error: finding arrangements for song with id %v\n", selectedArrangement.SongID)
+			fmt.Printf("Error: %v\n", err)
+			continue
 		}
 
-		song.Arrangements = append(song.Arrangements, arrangementParameters{
+		for _, a := range available_arrangements {
+			song.Arrangements = append(song.Arrangements, arrangementParameters{
 			ID:         a.ID,
 			Name:       a.Name,
 			Lyrics:     lyricSheetToHTML(a.Lyrics),
 			ChordChart: a.ChordChart.String,
 			SongID:     a.SongID,
-			IsSelected: a.IsSelected,
+			IsSelected: false,
+		})
+		}
+
+
+		song.Arrangements = append(song.Arrangements, arrangementParameters{
+			ID:         selectedArrangement.ID,
+			Name:       selectedArrangement.ArrangementName,
+			Lyrics:     lyricSheetToHTML(selectedArrangement.Lyrics),
+			ChordChart: selectedArrangement.ChordChart.String,
+			SongID:     selectedArrangement.SongID,
+			IsSelected: true,
 		})
 
 		eventParams.Songs[idx] = song
