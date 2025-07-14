@@ -21,7 +21,8 @@ type arrangementsResponse struct {
 
 type eventArrangementBody struct {
 	EventID 		uuid.UUID	`json:"event_id"`
-	ArrangementID 		uuid.UUID	`json:"arrangement_id"`
+	ArrangementID 	uuid.UUID	`json:"arrangement_id"`
+	SongID			uuid.UUID	`json:"song_id"`
 }
 
 func (cfg *config) getArrangements(w http.ResponseWriter, r *http.Request) {
@@ -61,6 +62,7 @@ func (cfg *config) addArrangementToEvent(w http.ResponseWriter, r *http.Request)
 	_, err := cfg.db.AddArrangementToEvent(context.Background(), database.AddArrangementToEventParams{
 		EventID: eventArrangement.EventID,
 		ArrangementID: eventArrangement.ArrangementID,
+		SongID: eventArrangement.SongID,
 	})
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't add arrangement to event")
