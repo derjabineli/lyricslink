@@ -1,5 +1,5 @@
 document.addEventListener("alpine:init", () => {
-  console.log("MOUNTED")
+  console.log("MOUNTED");
   Alpine.data("newSongModalComponent", () => ({
     query: "",
     songs: {},
@@ -7,8 +7,8 @@ document.addEventListener("alpine:init", () => {
 
     async querySongs() {
       if (this.query.length === 0) {
-        this.songs = []
-        return
+        this.songs = [];
+        return;
       }
 
       try {
@@ -18,18 +18,18 @@ document.addEventListener("alpine:init", () => {
           body: JSON.stringify({
             query: this.query,
           }),
-        })
+        });
 
-        let data = await response.json()
+        let data = await response.json();
         if (!response.ok) {
           this.errorMessage =
-            data.error || "Something went wrong. Please try again"
+            data.error || "Something went wrong. Please try again";
         } else {
-          this.songs = data
+          this.songs = data;
         }
       } catch (error) {
-        console.error(error)
-        this.errorMessage = "An error occurred. Please try again."
+        console.error(error);
+        this.errorMessage = "An error occurred. Please try again.";
       }
     },
 
@@ -37,27 +37,21 @@ document.addEventListener("alpine:init", () => {
       try {
         let response = await fetch(`/api/songs/${key}`, {
           method: "GET",
-        })
-        let data = await response.json()
+        });
+        let data = await response.json();
         if (response.ok) {
-          songSeachDiv = document.getElementById("songSearch")
-          arrangementFormDiv = document.getElementById("arrangementForm")
-          songSeachDiv.classList.add("hidden")
-          arrangementFormDiv.classList.remove("hidden")
-          this.arrangements = data
+          songSeachDiv = document.getElementById("songSearch");
+          arrangementFormDiv = document.getElementById("arrangementForm");
+          songSeachDiv.classList.add("hidden");
+          arrangementFormDiv.classList.remove("hidden");
+          this.arrangements = data;
         }
       } catch (error) {}
     },
 
-    async addArrangementToEvent(arrangement_id) {
-      songInEvent = checkIfSongInEvent(this.songs, arrangement_id)
-      if (songInEvent) {
-        console.log("SONG ALREADY IN EVENT")
-        return
-      }
-
-      pathname = window.location.pathname
-      event_id = pathname.split("/events/").join("")
+    async addArrangementToEvent(arrangement_id, song_id) {
+      pathname = window.location.pathname;
+      event_id = pathname.split("/events/").join("");
       try {
         let response = await fetch(`/api/events_arrangements`, {
           method: "POST",
@@ -65,17 +59,18 @@ document.addEventListener("alpine:init", () => {
           body: JSON.stringify({
             event_id: event_id,
             arrangement_id: arrangement_id,
+            song_id: song_id,
           }),
-        })
+        });
 
         if (response.ok) {
-          window.location.reload()
+          window.location.reload();
         }
       } catch (error) {}
     },
-  }))
-})
+  }));
+});
 
 function checkIfSongInEvent(songs, key) {
-  return songs.some((song) => key in song)
+  return songs.some((song) => key in song);
 }
