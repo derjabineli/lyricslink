@@ -5,7 +5,9 @@ WHERE id = $1;
 -- name: SearchSongs :many
 SELECT os.song_id, s.* FROM organizations_songs os
 RIGHT JOIN songs s ON s.id = os.song_id
-WHERE os.organization_id = $1 AND title LIKE $2;
+WHERE os.organization_id = $1
+  AND regexp_replace(lower(title), '[^a-z0-9]+', '', 'g')
+      LIKE regexp_replace(lower($2), '[^a-z0-9]+', '', 'g') || '%';
 
 -- name: GetSongIdByPCId :one
 SELECT id FROM songs

@@ -90,12 +90,14 @@ func (q *Queries) GetSongIdByPCId(ctx context.Context, pcID sql.NullInt32) (uuid
 const searchSongs = `-- name: SearchSongs :many
 SELECT os.song_id, s.pc_id, s.admin, s.author, s.ccli_number, s.copy_right, s.themes, s.title, s.id, s.created_at, s.updated_at FROM organizations_songs os
 RIGHT JOIN songs s ON s.id = os.song_id
-WHERE os.organization_id = $1 AND title LIKE $2
+WHERE os.organization_id = $1
+  AND regexp_replace(lower(title), '[^a-z0-9]+', '', 'g')
+      LIKE regexp_replace(lower($2), '[^a-z0-9]+', '', 'g') || '%'
 `
 
 type SearchSongsParams struct {
 	OrganizationID uuid.UUID
-	Title          string
+	Lower          string
 }
 
 type SearchSongsRow struct {
@@ -113,7 +115,7 @@ type SearchSongsRow struct {
 }
 
 func (q *Queries) SearchSongs(ctx context.Context, arg SearchSongsParams) ([]SearchSongsRow, error) {
-	rows, err := q.db.QueryContext(ctx, searchSongs, arg.OrganizationID, arg.Title)
+	rows, err := q.db.QueryContext(ctx, searchSongs, arg.OrganizationID, arg.Lower)
 	if err != nil {
 		return nil, err
 	}

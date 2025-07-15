@@ -47,7 +47,7 @@ func (cfg *config) getSongs(w http.ResponseWriter, r *http.Request) {
 	decoder.Decode(&searchParams)
 
 	dbSongResults, err := cfg.db.SearchSongs(context.Background(), database.SearchSongsParams{
-		Title: searchParams.Query + "%", 
+		Lower: searchParams.Query + "%", 
 		OrganizationID: organizationID,
 	})
 	if err != nil {
