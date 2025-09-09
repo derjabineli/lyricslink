@@ -32,7 +32,7 @@
         <div class="w-10 h-10 bg-gray-300 rounded-full">
           <template x-if="user.avatar">
             <img
-              class="w-10 h-10 bg-gray-300 rounded-full"
+              class="w-10 h-10 bg-gray-300 rounded-full cursor-pointer"
               :src="user.avatar"
               alt=""
               @click="showHoverSettingsModal = !showHoverSettingsModal"
@@ -118,6 +118,14 @@
 
     <div class="max-w-4xl mx-auto">
       <div class="space-y-4">
+        <template x-if="!events.length">
+          <div class="text-center my-8">
+            <p class="text-gray-500 italic">
+              No events found. Head to Settings to sync your songs from Planning
+              Center before creating new events.
+            </p>
+          </div>
+        </template>
         <template x-for="event in events" :key="event.id">
           <a :href="event.link">
             <div
