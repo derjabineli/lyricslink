@@ -95,7 +95,7 @@ func NewAccessTokenCookie(userID uuid.UUID, sessionID uuid.UUID, tokenSecret str
 		Value:    jwtToken,
 		HttpOnly: true,                                // Make the cookie inaccessible to JavaScript
 		Secure:   true,                                // Ensure the cookie is only sent over HTTPS
-		SameSite: http.SameSiteLaxMode,                // Protect against CSRF attacks
+		SameSite: http.SameSiteNoneMode,                // Protect against CSRF attacks
 		Expires:  time.Now().Add(AccessTokenDuration), // Set cookie expiration
 		Path:     "/",                                 // Define cookie scope
 	}
@@ -114,7 +114,7 @@ func NewRefreshTokenCookie(userID uuid.UUID, sessionID uuid.UUID, tokenSecret st
 		Value:    jwtToken,
 		HttpOnly: true,                                 // Make the cookie inaccessible to JavaScript
 		Secure:   true,                                 // Ensure the cookie is only sent over HTTPS
-		SameSite: http.SameSiteStrictMode,              // Protect against CSRF attacks
+		SameSite: http.SameSiteNoneMode,              // Protect against CSRF attacks
 		Expires:  time.Now().Add(RefreshTokenDuration), // Set cookie expiration
 		Path:     "/",                                  // Define cookie scope
 	}
