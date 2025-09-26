@@ -208,6 +208,11 @@ func getPCUserData(bearerToken string) (PCUserParameters, error) {
 
 func (cfg *config) getPCOrganizationData(bearerToken string, org_url string) (database.PlanningCenterOrganization, error) {
 	client := &http.Client{}	
+	
+	if org_url == "" {
+		org_url = "https://api.planningcenteronline.com/people/v2/organization"
+	}
+
 	req, err := http.NewRequest(http.MethodGet, org_url, nil)
 	if err != nil {
 		return database.PlanningCenterOrganization{}, err
